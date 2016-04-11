@@ -9,6 +9,10 @@ defmodule IdeaZone.Router do
     plug :put_secure_browser_headers
   end
 
+  pipeline :admin do
+    plug IdeaZone.Plugs.EnsureAdmin
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
@@ -16,7 +20,23 @@ defmodule IdeaZone.Router do
   scope "/", IdeaZone do
     pipe_through :browser # Use the default browser stack
 
-    get "/", PageController, :index
+    resources "/contents", ContentController, only: [:index, :show, :new, :create]
+    get "/", ContentController, :index
+    get "/admin/login", Admin.SessionController, :new
+  end
+
+  scope "/admin", IdeaZone.Admin, as: :admin do
+    pipe_through :browser
+    resources "/sessions", SessionController, only: [:new, :create]
+  end
+
+  scope "/admin", IdeaZone.Admin, as: :admin do
+    pipe_through [:browser, :admin]
+
+    get "/logout", SessionController, :delete
+    resources "/contents", ContentController
+    resources "/content_statuses", ContentStatusController
+    resources "/content_types", ContentTypeController
   end
 
   # Other scopes may use custom stacks.

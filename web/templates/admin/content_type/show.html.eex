@@ -1,0 +1,13 @@
+<h2>Show content type</h2>
+
+<ul>
+
+  <li>
+    <strong>Label:</strong>
+    <%= @content_type.label %>
+  </li>
+
+</ul>
+
+<%= link "Edit", to: admin_content_type_path(@conn, :edit, @content_type) %>
+<%= link "Back", to: admin_content_type_path(@conn, :index) %>

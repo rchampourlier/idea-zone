@@ -1,0 +1,26 @@
+<h2>Listing content types</h2>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Label</th>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for content_type <- @content_types do %>
+    <tr>
+      <td><%= content_type.label %></td>
+
+      <td class="text-right">
+        <%= link "Show", to: admin_content_type_path(@conn, :show, content_type), class: "btn btn-default btn-xs" %>
+        <%= link "Edit", to: admin_content_type_path(@conn, :edit, content_type), class: "btn btn-default btn-xs" %>
+        <%= link "Delete", to: admin_content_type_path(@conn, :delete, content_type), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
+<%= link "New content type", to: admin_content_type_path(@conn, :new) %>

@@ -40,3 +40,7 @@ config :idea_zone, IdeaZone.Repo,
   database: "idea_zone_dev",
   hostname: "localhost",
   pool_size: 10
+
+# Custom config
+config :idea_zone,
+  admin_password: "password"

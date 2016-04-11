@@ -1,0 +1,27 @@
+<h2>Show content</h2>
+
+<ul>
+
+  <li>
+    <strong>Label:</strong>
+    <%= @content.label %>
+  </li>
+
+  <li>
+    <strong>Description:</strong>
+    <%= @content.description %>
+  </li>
+
+  <li>
+    <strong>Type:</strong>
+    <%= @content.type_id %>
+  </li>
+
+  <li>
+    <strong>Status:</strong>
+    <%= @content.status_id %>
+  </li>
+
+</ul>
+
+<%= link "Back", to: content_path(@conn, :index) %>

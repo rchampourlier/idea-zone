@@ -1,0 +1,32 @@
+<h2>Listing contents</h2>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Label</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Status</th>
+
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+<%= for content <- @contents do %>
+    <tr>
+      <td><%= content.label %></td>
+      <td><%= content.description %></td>
+      <td><%= content.type.label %></td>
+      <td><%= content.status.label %></td>
+
+      <td class="text-right">
+        <%= link "Show", to: admin_content_path(@conn, :show, content), class: "btn btn-default btn-xs" %>
+        <%= link "Edit", to: admin_content_path(@conn, :edit, content), class: "btn btn-default btn-xs" %>
+        <%= link "Delete", to: admin_content_path(@conn, :delete, content), method: :delete, data: [confirm: "Are you sure?"], class: "btn btn-danger btn-xs" %>
+      </td>
+    </tr>
+<% end %>
+  </tbody>
+</table>
+
+<%= link "New content", to: admin_content_path(@conn, :new) %>

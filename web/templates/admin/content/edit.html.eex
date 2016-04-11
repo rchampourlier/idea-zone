@@ -1,0 +1,8 @@
+<h2>Edit content</h2>
+
+<%= render "form.html", changeset: @changeset,
+                        statuses: @statuses,
+                        types: @types,
+                        action: admin_content_path(@conn, :update, @content) %>
+
+<%= link "Back", to: admin_content_path(@conn, :index) %>

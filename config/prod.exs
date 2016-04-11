@@ -59,3 +59,7 @@ config :logger, level: :info
 # Finally import the config/prod.secret.exs
 # which should be versioned separately.
 import_config "prod.secret.exs"
+
+# Custom config
+config :idea_zone,
+  admin_password: System.get_env("IDEA_ZONE_ADMIN_PASSWORD")
