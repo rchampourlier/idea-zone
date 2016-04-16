@@ -22,4 +22,4 @@ import "deps/phoenix_html/web/static/js/phoenix_html"
 
 // Set up our Elm App
 const elmDiv = document.querySelector('#elm-container');
-const elmApp = Elm.embed(Elm.App, elmDiv);
+const elmApp = Elm.embed(Elm.ContentIndex, elmDiv);
