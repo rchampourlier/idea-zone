@@ -1,16 +1,18 @@
 defmodule IdeaZone.ContentController do
   use IdeaZone.Web, :controller
-  require IEx
 
+  alias IdeaZone.Comment
   alias IdeaZone.Content
   alias IdeaZone.ContentStatus
   alias IdeaZone.ContentType
+  alias IdeaZone.Vote
 
   plug :scrub_params, "content" when action in [:create, :update]
-  plug IdeaZone.Plugs.SessionToken when action in [:show]
 
   def index(conn, _params) do
-    contents = Content |> Repo.all |> Repo.preload([:status, :type])
+    contents = Content
+      |> Repo.all
+      |> Repo.preload([:status, :type])
     render(conn, "index.html", contents: contents)
   end
 
@@ -39,8 +41,19 @@ defmodule IdeaZone.ContentController do
   end
 
   def show(conn, %{"id" => id}) do
-    content = Repo.get!(Content, id)
-    render(conn, "show.html", content: content)
+    content = Content
+      |> Repo.get!(id)
+      |> Repo.preload([:comments, :status, :type])
+    comment_changeset = Comment.changeset(%Comment{content_id: id}, %{})
+    vote_changeset = Vote.changeset(%Vote{content_id: id}, %{})
+    votes_count = Repo.all(from v in Vote, select: count(v.id)) |> List.first
+
+    conn
+      |> assign(:content, content)
+      |> assign(:comment_changeset, comment_changeset)
+      |> assign(:vote_changeset, vote_changeset)
+      |> assign(:votes_count, votes_count)
+      |> render("show.html")
   end
 
   defp assign_statuses_and_types(conn) do

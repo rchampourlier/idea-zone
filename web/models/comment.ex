@@ -1,20 +1,14 @@
-defmodule IdeaZone.Content do
+defmodule IdeaZone.Comment do
   use IdeaZone.Web, :model
 
-  schema "contents" do
-    field :label, :string
-    field :description, :string
-
-    belongs_to :status, IdeaZone.ContentStatus
-    belongs_to :type, IdeaZone.ContentType
-
-    has_many :comments, IdeaZone.Comment
-    has_many :votes, IdeaZone.Vote
+  schema "comments" do
+    field :text, :string
+    belongs_to :content, IdeaZone.Content
 
     timestamps
   end
 
-  @required_fields ~w(label description type_id status_id)
+  @required_fields ~w(content_id text)
   @optional_fields ~w()
 
   @doc """

@@ -1,27 +1,41 @@
-<h2>Show content</h2>
+<h2>
+  <%= @content.label %>
+</h2>
+
+<p>
+  <%= @content.description %>
+</p>
+
+<div class="label label-default">
+  <%= @content.status.label %>
+</div>
+
+<div class="label label-default">
+  <%= @content.type.label %>
+</div>
+
+<h3><%= @votes_count %> votes</h3>
+<h3>Comments</h3>
 
 <ul>
-
+<%= Enum.map @content.comments, fn comment -> %>
   <li>
-    <strong>Label:</strong>
-    <%= @content.label %>
+    <%= render IdeaZone.SharedView, "comment_item.html",
+        comment: comment %>
   </li>
-
-  <li>
-    <strong>Description:</strong>
-    <%= @content.description %>
-  </li>
-
-  <li>
-    <strong>Type:</strong>
-    <%= @content.type_id %>
-  </li>
-
-  <li>
-    <strong>Status:</strong>
-    <%= @content.status_id %>
-  </li>
-
+<% end %>
 </ul>
 
-<%= link "Back", to: content_path(@conn, :index) %>
+<%= render IdeaZone.SharedView, "comment_form.html",
+      changeset: @comment_changeset,
+      action: comment_path(@conn, :create),
+      label: "Add comment:" %>
+
+<%= render IdeaZone.SharedView, "vote_form.html",
+      changeset: @vote_changeset,
+      action: vote_path(@conn, :create),
+      label: "Vote for this content" %>
+
+<div>
+  <%= link "Back", to: content_path(@conn, :index) %>
+</div>

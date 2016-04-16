@@ -17,7 +17,7 @@
         <div class="container-fluid">
           <!-- Brand and toggle get grouped for better mobile display -->
           <div class="navbar-header">
-            <a class="navbar-brand" href="#">IdeaZone</a>
+            <a class="navbar-brand" href="/">IdeaZone</a>
           </div>
 
           <!-- Collect the nav links, forms, and other content for toggling -->
@@ -36,6 +36,7 @@
       </nav>
 
       <p class="alert alert-info" role="alert"><%= get_flash(@conn, :info) %></p>
+      <p class="alert alert-success" role="alert"><%= get_flash(@conn, :success) %></p>
       <p class="alert alert-danger" role="alert"><%= get_flash(@conn, :error) %></p>
 
       <%= @inner %>

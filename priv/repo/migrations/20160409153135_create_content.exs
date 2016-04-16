@@ -10,8 +10,8 @@ defmodule IdeaZone.Repo.Migrations.CreateContent do
 
       timestamps
     end
+
     create index(:contents, [:type_id])
     create index(:contents, [:status_id])
-
   end
 end

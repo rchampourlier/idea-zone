@@ -1,20 +1,14 @@
-defmodule IdeaZone.Content do
+defmodule IdeaZone.Vote do
   use IdeaZone.Web, :model
 
-  schema "contents" do
-    field :label, :string
-    field :description, :string
-
-    belongs_to :status, IdeaZone.ContentStatus
-    belongs_to :type, IdeaZone.ContentType
-
-    has_many :comments, IdeaZone.Comment
-    has_many :votes, IdeaZone.Vote
+  schema "votes" do
+    field :user_session_token, :string
+    belongs_to :content, IdeaZone.Content
 
     timestamps
   end
 
-  @required_fields ~w(label description type_id status_id)
+  @required_fields ~w(user_session_token content_id)
   @optional_fields ~w()
 
   @doc """
@@ -26,5 +20,6 @@ defmodule IdeaZone.Content do
   def changeset(model, params \\ :empty) do
     model
     |> cast(params, @required_fields, @optional_fields)
+    |> unique_constraint(:user_session_token, name: :votes_content_id_user_session_token_index)
   end
 end
