@@ -46,8 +46,9 @@ defmodule IdeaZone.Router do
     resources "/content_types", ContentTypeController
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", IdeaZone do
-  #   pipe_through :api
-  # end
+  scope "/api", IdeaZone do
+    pipe_through :api
+
+    resources "/contents", API.ContentController, only: [:index]
+  end
 end

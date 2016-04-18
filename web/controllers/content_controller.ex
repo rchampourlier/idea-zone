@@ -16,10 +16,11 @@ defmodule IdeaZone.ContentController do
     render(conn, "index.html", contents: contents)
   end
 
-  def new(conn, _params) do
+  def new(conn, params) do
+    changeset = Content.changeset(%Content{}, %{"label" => params["label"] || ""})
     conn
       |> assign_statuses_and_types
-      |> assign(:changeset, Content.changeset(%Content{}))
+      |> assign(:changeset, changeset)
       |> render("new.html")
   end
 

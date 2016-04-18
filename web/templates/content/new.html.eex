@@ -1,7 +1,8 @@
 <h2>New content</h2>
 
-<%= render "form.html", changeset: @changeset,
-                        types: @types,
-                        action: content_path(@conn, :create) %>
+<%= render "form.html",
+      changeset: @changeset,
+      types: @types,
+      action: content_path(@conn, :create) %>
 
 <%= link "Back", to: content_path(@conn, :index) %>

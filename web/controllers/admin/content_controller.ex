@@ -8,8 +8,12 @@ defmodule IdeaZone.Admin.ContentController do
   plug :scrub_params, "content" when action in [:create, :update]
 
   def index(conn, _params) do
-    contents = Content |> Repo.all |> Repo.preload([:status, :type])
-    render(conn, "index.html", contents: contents)
+    contents = Content
+      |> Repo.all
+      |> Repo.preload([:status, :type])
+    conn
+      |> assign(:contents, contents)
+      |> render("index.html")
   end
 
   def new(conn, _params) do
