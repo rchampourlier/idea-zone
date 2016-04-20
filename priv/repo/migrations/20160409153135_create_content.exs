@@ -5,6 +5,7 @@ defmodule IdeaZone.Repo.Migrations.CreateContent do
     create table(:contents) do
       add :label, :string
       add :description, :text
+      add :language, :string
       add :type_id, references(:content_types)
       add :status_id, references(:content_statuses)
 

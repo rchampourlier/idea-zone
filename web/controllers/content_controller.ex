@@ -25,7 +25,11 @@ defmodule IdeaZone.ContentController do
   end
 
   def create(conn, %{"content" => content_params}) do
-    content_params = Map.merge(content_params, %{"status_id" => default_status_id})
+    content_params = content_params
+      |> Map.merge(%{
+        "status_id" => default_status_id,
+        "language" => "fr"
+      })
     changeset = Content.changeset(%Content{}, content_params)
 
     case Repo.insert(changeset) do

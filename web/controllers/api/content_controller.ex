@@ -1,22 +1,18 @@
 defmodule IdeaZone.API.ContentController do
   use IdeaZone.Web, :controller
-
-  alias IdeaZone.Comment
   alias IdeaZone.Content
-  alias IdeaZone.ContentStatus
-  alias IdeaZone.ContentType
-  alias IdeaZone.Vote
 
   import Ecto.Query, only: [from: 2]
 
-  def index(conn, %{"filter" => filter}) do
-    filter = "%#{filter}%"
-    query = from c in Content,
-      where: like(c.label, ^filter) or like(c.description, ^filter),
-      select: c
-    contents = query
+  def index(conn, %{"filter" => ""}) do
+    contents = Content
       |> Repo.all
       |> Repo.preload([:status, :type])
+    render(conn, "index.json", contents: contents)
+  end
+  def index(conn, %{"filter" => filter}) do
+    search_terms = filter |> String.split(" ")
+    contents = Content.search(search_terms) |> Repo.preload([:status, :type])
     render(conn, "index.json", contents: contents)
   end
 
