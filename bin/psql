@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+psql -d idea_zone_dev
