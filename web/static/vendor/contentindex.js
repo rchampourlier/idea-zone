@@ -11001,17 +11001,29 @@ Elm.ContentIndex.make = function (_elm) {
    $Result = Elm.Result.make(_elm),
    $Signal = Elm.Signal.make(_elm),
    $StartApp = Elm.StartApp.make(_elm),
+   $String = Elm.String.make(_elm),
    $Task = Elm.Task.make(_elm);
    var _op = {};
-   var viewContent = function (content) {
-      return A2($Html.a,
-      _U.list([$Html$Attributes.href(A2($Basics._op["++"],"/contents/",$Basics.toString(content.id)))]),
-      _U.list([A2($Html.div,
-      _U.list([$Html$Attributes.$class("bs-callout")]),
-      _U.list([A2($Html.h4,_U.list([]),_U.list([$Html.text(content.label)]))
-              ,A2($Html.div,_U.list([]),_U.list([$Html.text(content.description)]))
-              ,A2($Html.span,_U.list([$Html$Attributes.$class("label label-success")]),_U.list([$Html.text(content.status)]))]))]));
+   var decodeVoteResult = A2($Json$Decode.at,_U.list(["status"]),$Json$Decode.string);
+   var viewContentOfficialAnswer = function (officialAnswer) {
+      var _p0 = $String.isEmpty(officialAnswer);
+      if (_p0 === true) {
+            return A2($Html.div,_U.list([]),_U.list([]));
+         } else {
+            return A2($Html.div,
+            _U.list([$Html$Attributes.$class("well")]),
+            _U.list([A2($Html.h5,_U.list([]),_U.list([$Html.text("Official answer")])),$Html.text(officialAnswer)]));
+         }
    };
+   var ReceivedVoteResult = function (a) {    return {ctor: "ReceivedVoteResult",_0: a};};
+   var sendVote = F2(function (content,voteType) {
+      var voteTypeStr = function () {    var _p1 = voteType;if (_p1.ctor === "For") {    return "for";} else {    return "against";}}();
+      var url = A2($Http.url,
+      "/api/votes",
+      _U.list([{ctor: "_Tuple2",_0: "vote[content_id]",_1: $Basics.toString(content.id)},{ctor: "_Tuple2",_0: "vote[vote_type]",_1: voteTypeStr}]));
+      return $Effects.task(A2($Task.map,ReceivedVoteResult,$Task.toMaybe(A3($Http.post,decodeVoteResult,url,$Http.empty))));
+   });
+   var RequestVote = F2(function (a,b) {    return {ctor: "RequestVote",_0: a,_1: b};});
    var UpdateFilter = function (a) {    return {ctor: "UpdateFilter",_0: a};};
    var viewSearchForm = F2(function (address,model) {
       return A2($Html.form,
@@ -11031,22 +11043,64 @@ Elm.ContentIndex.make = function (_elm) {
                       ,$Html$Attributes.href(A2($Basics._op["++"],"/contents/new?label=",model.filter))]),
               _U.list([$Html.text("Create a new one")]))]));
    });
+   var SetContents = function (a) {    return {ctor: "SetContents",_0: a};};
+   var Against = {ctor: "Against"};
+   var For = {ctor: "For"};
+   var viewContentVoteButtons = F2(function (content,address) {
+      var voteAgainstButton = A2($Html.a,
+      _U.list([$Html$Attributes.$class("btn btn-default"),A2($Html$Events.onClick,address,A2(RequestVote,content,Against))]),
+      _U.list([$Html.text("Vote -")]));
+      var voteForButton = A2($Html.a,
+      _U.list([$Html$Attributes.$class("btn btn-default"),A2($Html$Events.onClick,address,A2(RequestVote,content,For))]),
+      _U.list([$Html.text("Vote +")]));
+      var _p2 = content.voteForCurrentUser;
+      _v2_2: do {
+         if (_p2.ctor === "Just") {
+               switch (_p2._0)
+               {case "for": return A2($Html.div,_U.list([]),_U.list([voteAgainstButton]));
+                  case "against": return A2($Html.div,_U.list([]),_U.list([voteForButton]));
+                  default: break _v2_2;}
+            } else {
+               break _v2_2;
+            }
+      } while (false);
+      return A2($Html.div,_U.list([]),_U.list([voteAgainstButton,voteForButton]));
+   });
+   var viewContent = F2(function (address,content) {
+      return A2($Html.span,
+      _U.list([$Html$Attributes.href(A2($Basics._op["++"],"/contents/",$Basics.toString(content.id))),$Html$Attributes.key($Basics.toString(content.id))]),
+      _U.list([A2($Html.div,
+      _U.list([$Html$Attributes.$class("bs-callout")]),
+      _U.list([A2($Html.h4,
+              _U.list([]),
+              _U.list([$Html.text(A2($Basics._op["++"],
+              content.label,
+              A2($Basics._op["++"],"(",A2($Basics._op["++"],$Basics.toString(content.voteScore),")"))))]))
+              ,A2($Html.div,_U.list([]),_U.list([$Html.text(content.description)]))
+              ,viewContentOfficialAnswer(content.officialAnswer)
+              ,A2($Html.span,_U.list([$Html$Attributes.$class("label label-success")]),_U.list([$Html.text(content.status)]))
+              ,A2(viewContentVoteButtons,content,address)]))]));
+   });
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([]),
       _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("bs-callout")]),_U.list([A2(viewSearchForm,address,model)]))
-              ,A2($Html.div,_U.list([]),A2($List.map,viewContent,model.contents))]));
+              ,A2($Html.div,_U.list([]),A2($List.map,viewContent(address),model.contents))]));
    });
-   var SetContents = function (a) {    return {ctor: "SetContents",_0: a};};
-   var Content = F5(function (a,b,c,d,e) {    return {id: a,label: b,description: c,status: d,contentType: e};});
+   var Content = F8(function (a,b,c,d,e,f,g,h) {
+      return {id: a,label: b,description: c,officialAnswer: d,status: e,contentType: f,voteScore: g,voteForCurrentUser: h};
+   });
    var decodeContents = function () {
-      var content = A6($Json$Decode.object5,
-      F5(function (id,label,desc,status,cType) {    return A5(Content,id,label,desc,status,cType);}),
+      var content = A9($Json$Decode.object8,
+      F8(function (id,label,desc,oAnswer,status,cType,voteScore,voted) {    return A8(Content,id,label,desc,oAnswer,status,cType,voteScore,voted);}),
       A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
       A2($Json$Decode._op[":="],"label",$Json$Decode.string),
       A2($Json$Decode._op[":="],"description",$Json$Decode.string),
+      A2($Json$Decode._op[":="],"officialAnswer",$Json$Decode.string),
       A2($Json$Decode._op[":="],"status",$Json$Decode.string),
-      A2($Json$Decode._op[":="],"type",$Json$Decode.string));
+      A2($Json$Decode._op[":="],"type",$Json$Decode.string),
+      A2($Json$Decode._op[":="],"voteScore",$Json$Decode.$int),
+      $Json$Decode.maybe(A2($Json$Decode._op[":="],"voteForCurrentUser",$Json$Decode.string)));
       return A2($Json$Decode.at,_U.list(["data"]),$Json$Decode.list(content));
    }();
    var fetchContents = function (filterStr) {
@@ -11054,16 +11108,21 @@ Elm.ContentIndex.make = function (_elm) {
       return $Effects.task(A2($Task.map,SetContents,$Task.toMaybe(A2($Http.get,decodeContents,url))));
    };
    var update = F2(function (action,model) {
-      var _p0 = action;
-      if (_p0.ctor === "SetContents") {
-            var newContents = A2($Maybe.withDefault,model.contents,_p0._0);
-            var newModel = _U.update(model,{contents: newContents});
-            return {ctor: "_Tuple2",_0: newModel,_1: $Effects.none};
-         } else {
-            var _p1 = _p0._0;
-            var newModel = _U.update(model,{filter: _p1});
-            return {ctor: "_Tuple2",_0: newModel,_1: fetchContents(_p1)};
-         }
+      var _p3 = action;
+      switch (_p3.ctor)
+      {case "SetContents": var newContents = A2($Maybe.withDefault,model.contents,_p3._0);
+           var newModel = _U.update(model,{contents: newContents});
+           return {ctor: "_Tuple2",_0: newModel,_1: $Effects.none};
+         case "UpdateFilter": var _p4 = _p3._0;
+           var newModel = _U.update(model,{filter: _p4});
+           return {ctor: "_Tuple2",_0: newModel,_1: fetchContents(_p4)};
+         case "RequestVote": return {ctor: "_Tuple2",_0: model,_1: A2(sendVote,_p3._0,_p3._1)};
+         default: var _p5 = _p3._0;
+           if (_p5.ctor === "Just" && _p5._0 === "ok") {
+                 return {ctor: "_Tuple2",_0: model,_1: fetchContents(model.filter)};
+              } else {
+                 return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+              }}
    });
    var Model = F2(function (a,b) {    return {contents: a,filter: b};});
    var init = {ctor: "_Tuple2",_0: A2(Model,_U.list([]),""),_1: fetchContents("")};
@@ -11074,14 +11133,22 @@ Elm.ContentIndex.make = function (_elm) {
                                      ,Model: Model
                                      ,Content: Content
                                      ,init: init
+                                     ,For: For
+                                     ,Against: Against
                                      ,SetContents: SetContents
                                      ,UpdateFilter: UpdateFilter
+                                     ,RequestVote: RequestVote
+                                     ,ReceivedVoteResult: ReceivedVoteResult
                                      ,update: update
                                      ,view: view
                                      ,viewContent: viewContent
+                                     ,viewContentOfficialAnswer: viewContentOfficialAnswer
+                                     ,viewContentVoteButtons: viewContentVoteButtons
                                      ,viewSearchForm: viewSearchForm
                                      ,fetchContents: fetchContents
                                      ,decodeContents: decodeContents
+                                     ,sendVote: sendVote
+                                     ,decodeVoteResult: decodeVoteResult
                                      ,app: app
                                      ,main: main};
 };

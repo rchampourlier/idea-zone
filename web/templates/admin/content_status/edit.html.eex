@@ -1,6 +1,0 @@
-<h2>Edit content status</h2>
-
-<%= render "form.html", changeset: @changeset,
-                        action: admin_content_status_path(@conn, :update, @content_status) %>
-
-<%= link "Back", to: admin_content_status_path(@conn, :index) %>

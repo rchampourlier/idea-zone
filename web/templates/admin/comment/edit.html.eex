@@ -1,0 +1,6 @@
+<h2>Edit comment</h2>
+
+<%= render "form.html", changeset: @changeset,
+                        action: admin_comment_path(@conn, :update, @comment) %>
+
+<%= link "Back", to: admin_content_path(@conn, :show, @comment.content_id) %>

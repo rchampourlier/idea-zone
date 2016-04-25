@@ -28,7 +28,7 @@
                   <li><a href="<%= link.href %>"><%= link.title %></a></li>
                 <% end %>
               <% else %>
-                <li><a href="/admin/login">Admin</a></li>
+                <li><a href="/admin/contents">Admin</a></li>
               <% end %>
             </ul>
           </div><!-- /.navbar-collapse -->

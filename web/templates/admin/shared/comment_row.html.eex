@@ -1,0 +1,16 @@
+<td>
+  <%= @comment.inserted_at %>
+</td>
+<td>
+  <%= @comment.text %>
+</td>
+<td>
+<%= if @comment.hidden do %>
+  <a href="<%= admin_comment_path(@conn, :toggle, @comment) %>">Show</a>
+<%= else %>
+  <a href="<%= admin_comment_path(@conn, :toggle, @comment) %>">Hide</a>
+<% end %>
+</td>
+<td>
+  <a href="<%= admin_comment_path(@conn, :edit, @comment) %>">Edit</a>
+</td>

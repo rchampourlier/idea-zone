@@ -19,6 +19,7 @@ defmodule IdeaZone.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug :fetch_session
   end
 
   scope "/", IdeaZone do
@@ -28,7 +29,7 @@ defmodule IdeaZone.Router do
     resources "/comments", CommentController, only: [:create]
     resources "/votes",    VoteController,    only: [:create]
 
-    get "/", ContentController, :index
+    get "/", HomeController, :show
     get "/admin/login", Admin.SessionController, :new
   end
 
@@ -41,14 +42,22 @@ defmodule IdeaZone.Router do
     pipe_through [:browser, :admin]
 
     get "/logout", SessionController, :delete
-    resources "/contents", ContentController
-    resources "/content_statuses", ContentStatusController
+    resources "/contents", ContentController, only: [:index, :show, :edit, :update, :delete]
+    put "/content/:id/toggle", ContentController, :toggle
+    put "/content/:id/mark_new", ContentController, :mark_new
+    put "/content/:id/mark_in_progress", ContentController, :mark_in_progress
+    put "/content/:id/mark_solved", ContentController, :mark_solved
+
     resources "/content_types", ContentTypeController
+
+    resources "/comments", CommentController, only: [:edit, :update]
+    get "/comment/:id/toggle", CommentController, :toggle
   end
 
   scope "/api", IdeaZone do
     pipe_through :api
 
     resources "/contents", API.ContentController, only: [:index]
+    resources "/votes", API.VoteController, only: [:create]
   end
 end

@@ -11,13 +11,8 @@
   <% end %>
 
   <div class="form-group">
-    <%= label f, :label, "Label", class: "control-label" %>
-    <%= text_input f, :label, class: "form-control" %>
-  </div>
-
-  <div class="form-group">
-    <%= label f, :default, "Default?", class: "control-label" %>
-    <%= checkbox f, :default %>
+    <%= label f, :text, "Text", class: "control-label" %>
+    <%= textarea f, :text, class: "form-control" %>
   </div>
 
   <div class="form-group">

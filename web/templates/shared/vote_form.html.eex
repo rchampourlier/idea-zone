@@ -11,6 +11,7 @@
   <% end %>
 
   <%= hidden_input f, :content_id %>
+  <%= hidden_input f, :vote_type, value: @vote_type %>
 
   <div class="form-group">
     <%= submit @label, class: "btn btn-primary" %>

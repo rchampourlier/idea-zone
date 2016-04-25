@@ -3,13 +3,15 @@ defmodule IdeaZone.Comment do
 
   schema "comments" do
     field :text, :string
+    field :hidden, :boolean, default: false
+
     belongs_to :content, IdeaZone.Content
 
     timestamps
   end
 
   @required_fields ~w(content_id text)
-  @optional_fields ~w()
+  @optional_fields ~w(hidden)
 
   @doc """
   Creates a changeset based on the `model` and `params`.

@@ -15,7 +15,7 @@ defmodule IdeaZone.CommentController do
         conn
         |> put_flash(:info, "Comment created successfully.")
         |> redirect(to: content_path(conn, :show, content_id))
-      {:error, changeset} ->
+      {:error, _changeset} ->
         conn
           |> put_flash(:error, "Failed to add comment.")
           |> redirect(to: content_path(conn, :show, content_id))

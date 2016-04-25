@@ -1,4 +1,7 @@
 <h2>
+  <span class="label label-success">
+    <%= @content.type.label %>
+  </span>
   <%= @content.label %>
 </h2>
 
@@ -6,35 +9,54 @@
   <%= @content.description %>
 </p>
 
-<div class="label label-default">
-  <%= @content.status.label %>
-</div>
+<p><em>
+  Added <%= @content.inserted_at %>
+</em></p>
 
 <div class="label label-default">
-  <%= @content.type.label %>
+  <%= @content.status %>
 </div>
 
-<h3><%= @votes_count %> votes</h3>
+<h3>Score: <%= @content.vote_score %></h3>
+<%= if @content.vote_type_for_current_user != "for" do
+  render IdeaZone.SharedView, "vote_form.html",
+    changeset: @vote_changeset,
+    action: vote_path(@conn, :create),
+    label: "Vote +",
+    vote_type: "for"
+end %>
+<%= if @content.vote_type_for_current_user != "against" do
+  render IdeaZone.SharedView, "vote_form.html",
+    changeset: @vote_changeset,
+    action: vote_path(@conn, :create),
+    label: "Vote -",
+    vote_type: "against"
+end %>
+
+<%= if @content.official_answer do %>
+<h3>Official answer</h3>
+<p><%= @content.official_answer %></p>
+<% end %>
+
 <h3>Comments</h3>
 
-<ul>
+<table>
 <%= Enum.map @content.comments, fn comment -> %>
-  <li>
-    <%= render IdeaZone.SharedView, "comment_item.html",
+  <%= unless comment.hidden do %>
+  <tr>
+    <%= render IdeaZone.SharedView, "comment_row.html",
         comment: comment %>
-  </li>
+  </tr>
+  <% end %>
 <% end %>
-</ul>
+</table>
 
+<%= unless @content.official_answer do %>
 <%= render IdeaZone.SharedView, "comment_form.html",
       changeset: @comment_changeset,
       action: comment_path(@conn, :create),
       label: "Add comment:" %>
-
-<%= render IdeaZone.SharedView, "vote_form.html",
-      changeset: @vote_changeset,
-      action: vote_path(@conn, :create),
-      label: "Vote for this content" %>
+<% end %>
 
 <div>
   <%= link "Back", to: content_path(@conn, :index) %>

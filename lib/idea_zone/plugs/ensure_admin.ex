@@ -14,11 +14,14 @@ defmodule IdeaZone.Plugs.EnsureAdmin do
 
   def call(conn, _default) do
     if get_session(conn, :admin) do
-      conn |> assign(:links, [%{title: "Disconnect", href: "/admin/logout"}])
+      links = [
+        %{title: "Contents", href: "/admin/contents"},
+        %{title: "Content types", href: "/admin/content_types"},
+        %{title: "Disconnect", href: "/admin/logout"}
+      ]
+      conn |> assign(:links, links)
     else
       conn
-        |> assign(:admin, true)
-        |> assign(:links, [%{title: "Disconnect", href: "/admin/logout"}])
         |> Controller.put_flash(:error, "You must be logged in as an admin to access this page!")
         |> Controller.redirect(to: "/admin/login")
     end

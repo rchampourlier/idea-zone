@@ -3,23 +3,24 @@ defmodule IdeaZone.ContentController do
 
   alias IdeaZone.Comment
   alias IdeaZone.Content
-  alias IdeaZone.ContentStatus
   alias IdeaZone.ContentType
   alias IdeaZone.Vote
 
-  plug :scrub_params, "content" when action in [:create, :update]
+  plug :scrub_params, "content" when action in [:create]
 
   def index(conn, _params) do
     contents = Content
       |> Repo.all
-      |> Repo.preload([:status, :type])
-    render(conn, "index.html", contents: contents)
+      |> Repo.preload([:type])
+    conn
+      |> assign(:contents, contents)
+      |> render("index.html")
   end
 
   def new(conn, params) do
     changeset = Content.changeset(%Content{}, %{"label" => params["label"] || ""})
     conn
-      |> assign_statuses_and_types
+      |> assign_types
       |> assign(:changeset, changeset)
       |> render("new.html")
   end
@@ -27,7 +28,7 @@ defmodule IdeaZone.ContentController do
   def create(conn, %{"content" => content_params}) do
     content_params = content_params
       |> Map.merge(%{
-        "status_id" => default_status_id,
+        "status" => default_status,
         "language" => "fr"
       })
     changeset = Content.changeset(%Content{}, content_params)
@@ -39,39 +40,37 @@ defmodule IdeaZone.ContentController do
         |> redirect(to: content_path(conn, :index))
       {:error, changeset} ->
         conn
-          |> assign_statuses_and_types
+          |> assign_types
           |> assign(:changeset, changeset)
           |> render("new.html")
     end
   end
 
+  # SELECT * FROM (SELECT contents.*, SUM(CASE vote_type WHEN 'for' THEN 1 WHEN 'against' THEN -1 ELSE 0 END) FROM contents RIGHT JOIN votes ON contents.id = votes.content_id GROUP BY contents.id) c WHERE c.id = 1;
   def show(conn, %{"id" => id}) do
+    user_session_token = get_session(conn, :session_token)
     content = Content
       |> Repo.get!(id)
-      |> Repo.preload([:comments, :status, :type])
+      |> Repo.preload([:comments, :type, :votes])
+      |> Content.calculate_vote_score
+      |> Content.calculate_vote_type_for_current_user(user_session_token)
+
     comment_changeset = Comment.changeset(%Comment{content_id: id}, %{})
     vote_changeset = Vote.changeset(%Vote{content_id: id}, %{})
-    votes_count = Repo.all(from v in Vote, select: count(v.id)) |> List.first
 
     conn
       |> assign(:content, content)
       |> assign(:comment_changeset, comment_changeset)
       |> assign(:vote_changeset, vote_changeset)
-      |> assign(:votes_count, votes_count)
       |> render("show.html")
   end
 
-  defp assign_statuses_and_types(conn) do
-    statuses = Repo.all(from(status in ContentStatus, select: {status.label, status.id}))
+  defp assign_types(conn) do
     types = Repo.all(from(type in ContentType, select: {type.label, type.id}))
-    conn
-      |> assign(:statuses, statuses)
-      |> assign(:types, types)
+    conn |> assign(:types, types)
   end
 
-  defp default_status_id do
-    Repo.all(from s in ContentStatus, where: s.default == true, select: s)
-      |> List.first
-      |> Map.get(:id)
+  defp default_status do
+    "in_progress"
   end
 end

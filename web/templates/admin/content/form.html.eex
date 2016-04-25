@@ -21,11 +21,6 @@
   </div>
 
   <div class="form-group">
-    <%= label f, :status_id, "Status", class: "control-label" %>
-    <%= select f, :status_id, @statuses, class: "form-control" %>
-  </div>
-
-  <div class="form-group">
     <%= label f, :type_id, "Type", class: "control-label" %>
     <%= select f, :type_id, @types, class: "form-control" %>
   </div>

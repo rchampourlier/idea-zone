@@ -13,7 +13,10 @@ defmodule IdeaZone.API.ContentView do
     %{id: content.id,
       label: content.label,
       description: content.description,
-      status: content.status.label,
-      type: content.type.label}
+      officialAnswer: content.official_answer || "",
+      status: content.status,
+      type: content.type.label,
+      voteScore: content.vote_score,
+      voteForCurrentUser: content.vote_type_for_current_user}
   end
 end
