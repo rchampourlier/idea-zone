@@ -54,7 +54,7 @@ Repo.insert! %Vote{
 Repo.insert! %Content{
   label: "A problem",
   description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etsi qui potest intellegi aut cogitari esse aliquod animal, quod se oderit? Habent enim et bene longam et satis litigiosam disputationem. Quod idem cum vestri faciant, non satis magnam tribuunt inventoribus gratiam. Nihil ad rem! Ne sit sane; Non quam nostram quidem, inquit Pomponius iocans; Qui-vere falsone, quaerere mittimus-dicitur oculis se privasse; Duo Reges: constructio interrete.",
-  official_answer: "There is no problem. (Some official answer by a really official personal. The boss.)",
+  official_answer: "Official answer from officials: \"There is no problem!\"",
   language: "en",
   status: "solved",
   type_id: 2
