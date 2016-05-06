@@ -1,8 +1,25 @@
-# TODO: add validation on status, within [:new, :in_progress, :solved]
-# TODO: vote_score and vote_type_for_current_user should not be in the
-#   model's schema but handled in the controller solely
-#
 defmodule IdeaZone.Content do
+  @moduledoc """
+  Content is the main resource of the application.
+
+  ## Fields
+    - `language` is used to select the search configuration to apply
+      on the content when performing PostgreSQL fulltext search.
+
+  ## Associations
+  - type (`ContentType`),
+  - comments,
+  - votes.
+
+  ## Status
+    - `new`
+    - `in_progress`
+    - `solved`
+
+  ## TODO
+    - add validation on status
+  """
+  
   use IdeaZone.Web, :model
   alias IdeaZone.Repo
   alias IdeaZone.Vote
