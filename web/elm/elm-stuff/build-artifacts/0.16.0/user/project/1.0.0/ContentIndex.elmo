@@ -24,16 +24,38 @@ Elm.ContentIndex.make = function (_elm) {
    var viewContentOfficialAnswer = function (officialAnswer) {
       var _p0 = $String.isEmpty(officialAnswer);
       if (_p0 === true) {
-            return A2($Html.div,_U.list([]),_U.list([]));
+            return A2($Html.div,_U.list([]),_U.list([$Html.text("No official answer yet")]));
          } else {
             return A2($Html.div,
-            _U.list([$Html$Attributes.$class("well")]),
-            _U.list([A2($Html.h5,_U.list([]),_U.list([$Html.text("Official answer")])),$Html.text(officialAnswer)]));
+            _U.list([$Html$Attributes.$class("official-answer")]),
+            _U.list([A2($Html.span,_U.list([$Html$Attributes.$class("official-answer__header")]),_U.list([$Html.text("Official answer:")]))
+                    ,A2($Html.span,_U.list([]),_U.list([$Html.text(officialAnswer)]))]));
          }
+   };
+   var viewContentStatus = function (status) {
+      var statusText = function () {
+         var _p1 = status;
+         switch (_p1)
+         {case "new": return "new";
+            case "in_progress": return "in progress";
+            case "solved": return "solved";
+            default: return "";}
+      }();
+      var labelColor = function () {
+         var _p2 = status;
+         switch (_p2)
+         {case "new": return "label-danger";
+            case "in_progress": return "label-warning";
+            case "solved": return "label-success";
+            default: return "label-default";}
+      }();
+      return A2($Html.span,
+      _U.list([$Html$Attributes.$class(A2($Basics._op["++"],"view-content__status label ",labelColor))]),
+      _U.list([$Html.text(statusText)]));
    };
    var ReceivedVoteResult = function (a) {    return {ctor: "ReceivedVoteResult",_0: a};};
    var sendVote = F2(function (content,voteType) {
-      var voteTypeStr = function () {    var _p1 = voteType;if (_p1.ctor === "For") {    return "for";} else {    return "against";}}();
+      var voteTypeStr = function () {    var _p3 = voteType;if (_p3.ctor === "Up") {    return "for";} else {    return "Down";}}();
       var url = A2($Http.url,
       "/api/votes",
       _U.list([{ctor: "_Tuple2",_0: "vote[content_id]",_1: $Basics.toString(content.id)},{ctor: "_Tuple2",_0: "vote[vote_type]",_1: voteTypeStr}]));
@@ -60,42 +82,32 @@ Elm.ContentIndex.make = function (_elm) {
               _U.list([$Html.text("Create a new one")]))]));
    });
    var SetContents = function (a) {    return {ctor: "SetContents",_0: a};};
-   var Against = {ctor: "Against"};
-   var For = {ctor: "For"};
-   var viewContentVoteButtons = F2(function (content,address) {
-      var voteAgainstButton = A2($Html.a,
-      _U.list([$Html$Attributes.$class("btn btn-default"),A2($Html$Events.onClick,address,A2(RequestVote,content,Against))]),
-      _U.list([$Html.text("Vote -")]));
-      var voteForButton = A2($Html.a,
-      _U.list([$Html$Attributes.$class("btn btn-default"),A2($Html$Events.onClick,address,A2(RequestVote,content,For))]),
-      _U.list([$Html.text("Vote +")]));
-      var _p2 = content.voteForCurrentUser;
-      _v2_2: do {
-         if (_p2.ctor === "Just") {
-               switch (_p2._0)
-               {case "for": return A2($Html.div,_U.list([]),_U.list([voteAgainstButton]));
-                  case "against": return A2($Html.div,_U.list([]),_U.list([voteForButton]));
-                  default: break _v2_2;}
-            } else {
-               break _v2_2;
-            }
-      } while (false);
-      return A2($Html.div,_U.list([]),_U.list([voteAgainstButton,voteForButton]));
+   var Down = {ctor: "Down"};
+   var Up = {ctor: "Up"};
+   var viewContentVoteComponent = F2(function (address,content) {
+      var voteDownButton = A2($Html.span,
+      _U.list([$Html$Attributes.$class("btn btn-default view-content__vote__button"),A2($Html$Events.onClick,address,A2(RequestVote,content,Down))]),
+      _U.list([$Html.text("⬇")]));
+      var voteScore = A2($Html.span,_U.list([$Html$Attributes.$class("view-content__vote__score")]),_U.list([$Html.text($Basics.toString(content.voteScore))]));
+      var voteUpButton = A2($Html.a,
+      _U.list([$Html$Attributes.$class("btn btn-default view-content__vote__button"),A2($Html$Events.onClick,address,A2(RequestVote,content,Up))]),
+      _U.list([$Html.text("⬆")]));
+      return A2($Html.div,_U.list([$Html$Attributes.$class("view-content__vote")]),_U.list([voteUpButton,voteScore,voteDownButton]));
    });
    var viewContent = F2(function (address,content) {
-      return A2($Html.span,
-      _U.list([$Html$Attributes.href(A2($Basics._op["++"],"/contents/",$Basics.toString(content.id))),$Html$Attributes.key($Basics.toString(content.id))]),
-      _U.list([A2($Html.div,
-      _U.list([$Html$Attributes.$class("bs-callout")]),
-      _U.list([A2($Html.h4,
-              _U.list([]),
-              _U.list([$Html.text(A2($Basics._op["++"],
-              content.label,
-              A2($Basics._op["++"],"(",A2($Basics._op["++"],$Basics.toString(content.voteScore),")"))))]))
-              ,A2($Html.div,_U.list([]),_U.list([$Html.text(content.description)]))
-              ,viewContentOfficialAnswer(content.officialAnswer)
-              ,A2($Html.span,_U.list([$Html$Attributes.$class("label label-success")]),_U.list([$Html.text(content.status)]))
-              ,A2(viewContentVoteButtons,content,address)]))]));
+      return A2($Html.div,
+      _U.list([$Html$Attributes.$class("view-content")]),
+      _U.list([A2(viewContentVoteComponent,address,content)
+              ,A2($Html.div,
+              _U.list([$Html$Attributes.$class("panel panel-default")]),
+              _U.list([A2($Html.div,
+                      _U.list([$Html$Attributes.$class("panel-heading")]),
+                      _U.list([A2($Html.h3,_U.list([$Html$Attributes.$class("panel-title")]),_U.list([$Html.text(content.label)]))
+                              ,viewContentStatus(content.status)]))
+                      ,A2($Html.div,
+                      _U.list([$Html$Attributes.$class("panel-body")]),
+                      _U.list([A2($Html.div,_U.list([]),_U.list([$Html.text(content.description)]))]))
+                      ,A2($Html.div,_U.list([$Html$Attributes.$class("panel-footer")]),_U.list([viewContentOfficialAnswer(content.officialAnswer)]))]))]));
    });
    var view = F2(function (address,model) {
       return A2($Html.div,
@@ -124,17 +136,17 @@ Elm.ContentIndex.make = function (_elm) {
       return $Effects.task(A2($Task.map,SetContents,$Task.toMaybe(A2($Http.get,decodeContents,url))));
    };
    var update = F2(function (action,model) {
-      var _p3 = action;
-      switch (_p3.ctor)
-      {case "SetContents": var newContents = A2($Maybe.withDefault,model.contents,_p3._0);
+      var _p4 = action;
+      switch (_p4.ctor)
+      {case "SetContents": var newContents = A2($Maybe.withDefault,model.contents,_p4._0);
            var newModel = _U.update(model,{contents: newContents});
            return {ctor: "_Tuple2",_0: newModel,_1: $Effects.none};
-         case "UpdateFilter": var _p4 = _p3._0;
-           var newModel = _U.update(model,{filter: _p4});
-           return {ctor: "_Tuple2",_0: newModel,_1: fetchContents(_p4)};
-         case "RequestVote": return {ctor: "_Tuple2",_0: model,_1: A2(sendVote,_p3._0,_p3._1)};
-         default: var _p5 = _p3._0;
-           if (_p5.ctor === "Just" && _p5._0 === "ok") {
+         case "UpdateFilter": var _p5 = _p4._0;
+           var newModel = _U.update(model,{filter: _p5});
+           return {ctor: "_Tuple2",_0: newModel,_1: fetchContents(_p5)};
+         case "RequestVote": return {ctor: "_Tuple2",_0: model,_1: A2(sendVote,_p4._0,_p4._1)};
+         default: var _p6 = _p4._0;
+           if (_p6.ctor === "Just" && _p6._0 === "ok") {
                  return {ctor: "_Tuple2",_0: model,_1: fetchContents(model.filter)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
@@ -149,8 +161,8 @@ Elm.ContentIndex.make = function (_elm) {
                                      ,Model: Model
                                      ,Content: Content
                                      ,init: init
-                                     ,For: For
-                                     ,Against: Against
+                                     ,Up: Up
+                                     ,Down: Down
                                      ,SetContents: SetContents
                                      ,UpdateFilter: UpdateFilter
                                      ,RequestVote: RequestVote
@@ -158,8 +170,9 @@ Elm.ContentIndex.make = function (_elm) {
                                      ,update: update
                                      ,view: view
                                      ,viewContent: viewContent
+                                     ,viewContentVoteComponent: viewContentVoteComponent
+                                     ,viewContentStatus: viewContentStatus
                                      ,viewContentOfficialAnswer: viewContentOfficialAnswer
-                                     ,viewContentVoteButtons: viewContentVoteButtons
                                      ,viewSearchForm: viewSearchForm
                                      ,fetchContents: fetchContents
                                      ,decodeContents: decodeContents

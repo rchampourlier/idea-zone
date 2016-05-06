@@ -22,6 +22,8 @@ form.link, form.button {
 
 /* Custom */
 
+/* Content.index - Search panel */
+
 .bs-callout {
   padding: 20px;
   margin: 20px 0;
@@ -42,4 +44,43 @@ form.link, form.button {
 
 .form-group, .form-group label {
   margin-right: 5px;
+}
+
+/* Content.index - Content views */
+
+.panel-heading {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+}
+
+.panel-heading h3 {
+  flex-grow: 1;
+}
+
+.view-content {
+  display: flex;
+}
+
+.view-content__vote {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 10px;
+  margin-bottom: 20px; /* Same as .panel */
+}
+
+.view-content__status {
+  font-size: 1.2em;
+  text-transform: uppercase;
+  padding-bottom: .2em; /* Overrides .label default (.3em) */
+}
+
+.view-content__vote__score {
+  font-size: 3em;
+}
+
+.official-answer__header {
+  font-weight: bold;
+  padding-right: 5px;
 }

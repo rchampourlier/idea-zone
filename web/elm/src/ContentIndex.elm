@@ -2,7 +2,7 @@ module ContentIndex where
 
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, for, href, key, id, type')
+import Html.Attributes exposing (class, for, href, key, id, style, type')
 import Html.Events exposing (..)
 import Http
 import Json.Decode exposing ((:=))
@@ -35,7 +35,7 @@ init =
 
 -- UPDATE
 
-type VoteType = For | Against
+type VoteType = Up | Down
 type Action
   = SetContents (Maybe (List Content))
   | UpdateFilter String
@@ -77,36 +77,70 @@ view address model =
 
 viewContent : Signal.Address Action -> Content -> Html
 viewContent address content =
-  span [ href ("/contents/" ++ (toString content.id)), key (toString content.id) ]
-    [ div [ class "bs-callout" ]
-      [ h4 [] [ text (content.label ++ "(" ++ toString(content.voteScore) ++ ")") ]
-      , div [] [ text content.description ]
-      , viewContentOfficialAnswer content.officialAnswer
-      , span [ class "label label-success"] [ text content.status ]
-      , viewContentVoteButtons content address
+  div [ class "view-content" ]
+    [ viewContentVoteComponent address content
+    -- , span [ href ("/contents/" ++ (toString content.id)), key (toString content.id) ]
+    , div [ class "panel panel-default" ]
+      [ div [ class "panel-heading" ]
+        [ h3 [ class "panel-title" ] [ text content.label ]
+        , viewContentStatus content.status
+        ]
+      , div [ class "panel-body" ]
+        [ div [] [ text content.description ] ]
+      , div [ class "panel-footer" ]
+        [ viewContentOfficialAnswer content.officialAnswer
+        ]
       ]
     ]
+
+viewContentVoteComponent : Signal.Address Action -> Content -> Html
+viewContentVoteComponent address content =
+  let
+    voteUpButton = a
+      [ class "btn btn-default view-content__vote__button"
+      , onClick address (RequestVote content Up)
+      ]
+      [ text "⬆" ]
+    voteScore = span
+      [ class "view-content__vote__score" ]
+      [ text (toString content.voteScore) ]
+    voteDownButton = span
+      [ class "btn btn-default view-content__vote__button"
+      , onClick address (RequestVote content Down)
+      ]
+      [ text "⬇" ]
+  in
+    div [ class "view-content__vote" ]
+      [ voteUpButton
+      , voteScore
+      , voteDownButton
+      ]
+
+viewContentStatus : String -> Html
+viewContentStatus status =
+  let
+    labelColor = case status of
+      "new" -> "label-danger"
+      "in_progress" -> "label-warning"
+      "solved" -> "label-success"
+      _ -> "label-default"
+    statusText = case status of
+      "new" -> "new"
+      "in_progress" -> "in progress"
+      "solved" -> "solved"
+      _ -> ""
+  in
+    span [ class ("view-content__status label " ++ labelColor) ] [ text statusText ]
 
 viewContentOfficialAnswer : String -> Html
 viewContentOfficialAnswer officialAnswer =
   case String.isEmpty officialAnswer of
-    True -> div [] []
+    True -> div [] [ text "No official answer yet" ]
     False ->
-      div [ class "well" ]
-        [ h5 [] [ text "Official answer" ]
-        , text officialAnswer
+      div [ class "official-answer" ]
+        [ span [ class "official-answer__header" ] [ text "Official answer:" ]
+        , span [] [ text officialAnswer ]
         ]
-
-viewContentVoteButtons : Content -> Signal.Address Action -> Html
-viewContentVoteButtons content address =
-  let
-    voteForButton = a [ class "btn btn-default", onClick address (RequestVote content For)] [ text "Vote +" ]
-    voteAgainstButton = a [ class "btn btn-default", onClick address (RequestVote content Against) ] [ text "Vote -" ]
-  in
-    case content.voteForCurrentUser of
-      Just "for" -> div [] [ voteAgainstButton ]
-      Just "against" -> div [] [ voteForButton ]
-      _ -> div [] [ voteAgainstButton, voteForButton ]
 
 viewSearchForm : Signal.Address Action -> Model -> Html
 viewSearchForm address model =
@@ -161,8 +195,8 @@ sendVote : Content -> VoteType -> Effects Action
 sendVote content voteType =
   let
     voteTypeStr = case voteType of
-      For -> "for"
-      Against -> "against"
+      Up -> "for"
+      Down -> "Down"
     url = Http.url "/api/votes" [ ("vote[content_id]", toString content.id), ("vote[vote_type]", voteTypeStr) ]
   in
     Http.post decodeVoteResult url Http.empty
