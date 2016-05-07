@@ -62,6 +62,10 @@ form.link, form.button {
   display: flex;
 }
 
+.content .panel, .content__details {
+  width: 100%;
+}
+
 .content__comments .panel-body {
   padding-bottom: 0;
 }
