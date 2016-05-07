@@ -121,7 +121,8 @@ Elm.ContentIndex.make = function (_elm) {
                       _U.list([A3($Html$Events.on,"input",$Html$Events.targetValue,function (str) {    return A2($Signal.message,address,UpdateFilter(str));})
                               ,$Html$Attributes.type$("text")
                               ,$Html$Attributes.$class("form-control")
-                              ,$Html$Attributes.id("filterInput")]),
+                              ,$Html$Attributes.id("filterInput")
+                              ,$Html$Attributes.size(50)]),
                       _U.list([]))]))
               ,A2($Html.a,
               _U.list([$Html$Attributes.type$("submit")
@@ -207,7 +208,7 @@ Elm.ContentIndex.make = function (_elm) {
    var view = F2(function (address,model) {
       return A2($Html.div,
       _U.list([]),
-      _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("bs-callout")]),_U.list([A2(viewSearchForm,address,model)]))
+      _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("filter-panel bs-callout")]),_U.list([A2(viewSearchForm,address,model)]))
               ,A2($Html.div,_U.list([]),A2($List.map,viewContent(address),model.contents))]));
    });
    var adminArea = Elm.Native.Port.make(_elm).inbound("adminArea",

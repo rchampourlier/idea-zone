@@ -2,7 +2,7 @@ module ContentIndex where
 
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, disabled, for, href, key, id, style, type')
+import Html.Attributes exposing (class, classList, disabled, for, href, key, id, size, style, type')
 import Html.Events exposing (..)
 import Http
 import Json.Decode exposing ((:=))
@@ -79,7 +79,7 @@ update action model =
 view : Signal.Address Action -> Model -> Html
 view address model =
   div []
-    [ div [ class "bs-callout" ] [ viewSearchForm address model ]
+    [ div [ class "filter-panel bs-callout" ] [ viewSearchForm address model ]
     , div [] (List.map (viewContent address) model.contents)
     ]
 
@@ -180,6 +180,7 @@ viewSearchForm address model =
         , type' "text"
         , class "form-control"
         , id "filterInput"
+        , size 50
         ] []
       ]
     , a
