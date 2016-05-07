@@ -11005,10 +11005,38 @@ Elm.ContentIndex.make = function (_elm) {
    $Task = Elm.Task.make(_elm);
    var _op = {};
    var decodeVoteResult = A2($Json$Decode.at,_U.list(["status"]),$Json$Decode.string);
+   var voteType = F2(function (maybeVote,direction) {
+      var _p0 = {ctor: "_Tuple2",_0: maybeVote,_1: direction};
+      if (_p0._0.ctor === "Nothing") {
+            if (_p0._1.ctor === "Up") {
+                  return "for";
+               } else {
+                  return "against";
+               }
+         } else {
+            var _p1 = {ctor: "_Tuple2",_0: _p0._0._0.voteType,_1: direction};
+            _v1_6: do {
+               if (_p1._1.ctor === "Up") {
+                     switch (_p1._0)
+                     {case "for": return "for";
+                        case "neutral": return "for";
+                        case "against": return "neutral";
+                        default: break _v1_6;}
+                  } else {
+                     switch (_p1._0)
+                     {case "for": return "neutral";
+                        case "neutral": return "against";
+                        case "against": return "against";
+                        default: break _v1_6;}
+                  }
+            } while (false);
+            return "neutral";
+         }
+   });
    var viewContentOfficialAnswer = function (officialAnswer) {
-      var _p0 = $String.isEmpty(officialAnswer);
-      if (_p0 === true) {
-            return A2($Html.div,_U.list([]),_U.list([$Html.text("No official answer yet")]));
+      var _p2 = $String.isEmpty(officialAnswer);
+      if (_p2 === true) {
+            return A2($Html.em,_U.list([]),_U.list([$Html.text("No official answer yet.")]));
          } else {
             return A2($Html.div,
             _U.list([$Html$Attributes.$class("official-answer")]),
@@ -11018,32 +11046,52 @@ Elm.ContentIndex.make = function (_elm) {
    };
    var viewContentStatus = function (status) {
       var statusText = function () {
-         var _p1 = status;
-         switch (_p1)
+         var _p3 = status;
+         switch (_p3)
          {case "new": return "new";
             case "in_progress": return "in progress";
             case "solved": return "solved";
             default: return "";}
       }();
       var labelColor = function () {
-         var _p2 = status;
-         switch (_p2)
+         var _p4 = status;
+         switch (_p4)
          {case "new": return "label-danger";
             case "in_progress": return "label-warning";
             case "solved": return "label-success";
             default: return "label-default";}
       }();
-      return A2($Html.span,
-      _U.list([$Html$Attributes.$class(A2($Basics._op["++"],"view-content__status label ",labelColor))]),
-      _U.list([$Html.text(statusText)]));
+      return A2($Html.span,_U.list([$Html$Attributes.$class(A2($Basics._op["++"],"content__status label ",labelColor))]),_U.list([$Html.text(statusText)]));
+   };
+   var viewContentType = function (contentType) {
+      return A2($Html.span,_U.list([$Html$Attributes.$class("content__type label label-default")]),_U.list([$Html.text(contentType)]));
    };
    var ReceivedVoteResult = function (a) {    return {ctor: "ReceivedVoteResult",_0: a};};
-   var sendVote = F2(function (content,voteType) {
-      var voteTypeStr = function () {    var _p3 = voteType;if (_p3.ctor === "Up") {    return "for";} else {    return "Down";}}();
-      var url = A2($Http.url,
-      "/api/votes",
-      _U.list([{ctor: "_Tuple2",_0: "vote[content_id]",_1: $Basics.toString(content.id)},{ctor: "_Tuple2",_0: "vote[vote_type]",_1: voteTypeStr}]));
-      return $Effects.task(A2($Task.map,ReceivedVoteResult,$Task.toMaybe(A3($Http.post,decodeVoteResult,url,$Http.empty))));
+   var sendVote = F2(function (content,voteDirection) {
+      var contentId = $Basics.toString(content.id);
+      var maybeVote = content.voteForCurrentUser;
+      var votePath = function () {
+         var _p5 = maybeVote;
+         if (_p5.ctor === "Nothing") {
+               return A2($Basics._op["++"],"/api/contents/",A2($Basics._op["++"],contentId,"/votes"));
+            } else {
+               return A2($Basics._op["++"],"/api/contents/",A2($Basics._op["++"],contentId,A2($Basics._op["++"],"/votes/",$Basics.toString(_p5._0.id))));
+            }
+      }();
+      var updateParams = function () {
+         var _p6 = maybeVote;
+         if (_p6.ctor === "Nothing") {
+               return _U.list([]);
+            } else {
+               return _U.list([{ctor: "_Tuple2",_0: "id",_1: $Basics.toString(_p6._0.id)}]);
+            }
+      }();
+      var params = A2($Basics._op["++"],
+      _U.list([{ctor: "_Tuple2",_0: "vote[vote_type]",_1: A2(voteType,maybeVote,voteDirection)},{ctor: "_Tuple2",_0: "content_id",_1: contentId}]),
+      updateParams);
+      var verb = function () {    var _p7 = maybeVote;if (_p7.ctor === "Nothing") {    return "POST";} else {    return "PUT";}}();
+      var request = {verb: verb,headers: _U.list([]),url: A2($Http.url,votePath,params),body: $Http.empty};
+      return $Effects.task(A2($Task.map,ReceivedVoteResult,$Task.toMaybe(A2($Http.fromJson,decodeVoteResult,A2($Http.send,$Http.defaultSettings,request)))));
    });
    var RequestVote = F2(function (a,b) {    return {ctor: "RequestVote",_0: a,_1: b};});
    var UpdateFilter = function (a) {    return {ctor: "UpdateFilter",_0: a};};
@@ -11069,24 +11117,93 @@ Elm.ContentIndex.make = function (_elm) {
    var Down = {ctor: "Down"};
    var Up = {ctor: "Up"};
    var viewContentVoteComponent = F2(function (address,content) {
-      var voteDownButton = A2($Html.span,
-      _U.list([$Html$Attributes.$class("btn btn-default view-content__vote__button"),A2($Html$Events.onClick,address,A2(RequestVote,content,Down))]),
-      _U.list([$Html.text("⬇")]));
-      var voteScore = A2($Html.span,_U.list([$Html$Attributes.$class("view-content__vote__score")]),_U.list([$Html.text($Basics.toString(content.voteScore))]));
-      var voteUpButton = A2($Html.a,
-      _U.list([$Html$Attributes.$class("btn btn-default view-content__vote__button"),A2($Html$Events.onClick,address,A2(RequestVote,content,Up))]),
+      var voteScore = A2($Html.span,_U.list([$Html$Attributes.$class("content__vote__score")]),_U.list([$Html.text($Basics.toString(content.voteScore))]));
+      var buttonsDisabled = function () {
+         var _p8 = content.voteForCurrentUser;
+         if (_p8.ctor === "Nothing") {
+               return {up: false,down: false};
+            } else {
+               var _p9 = _p8._0.voteType;
+               switch (_p9)
+               {case "for": return {up: true,down: false};
+                  case "against": return {up: false,down: true};
+                  default: return {up: false,down: false};}
+            }
+      }();
+      var voteUpButton = A2($Html.span,
+      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "disabled",_1: buttonsDisabled.up}
+                                                  ,{ctor: "_Tuple2",_0: "btn btn-default content__vote__button",_1: true}]))
+              ,A2($Html$Events.onClick,address,A2(RequestVote,content,Up))]),
       _U.list([$Html.text("⬆")]));
-      return A2($Html.div,_U.list([$Html$Attributes.$class("view-content__vote")]),_U.list([voteUpButton,voteScore,voteDownButton]));
+      var voteDownButton = A2($Html.span,
+      _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "disabled",_1: buttonsDisabled.down}
+                                                  ,{ctor: "_Tuple2",_0: "btn btn-default content__vote__button",_1: true}]))
+              ,A2($Html$Events.onClick,address,A2(RequestVote,content,Down))
+              ,$Html$Attributes.disabled(buttonsDisabled.down)]),
+      _U.list([$Html.text("⬇")]));
+      return A2($Html.div,_U.list([$Html$Attributes.$class("content__vote")]),_U.list([voteUpButton,voteScore,voteDownButton]));
+   });
+   var Content = F8(function (a,b,c,d,e,f,g,h) {
+      return {id: a,label: b,description: c,officialAnswer: d,status: e,contentType: f,voteScore: g,voteForCurrentUser: h};
+   });
+   var Vote = F2(function (a,b) {    return {id: a,voteType: b};});
+   var decodeVote = A3($Json$Decode.object2,
+   F2(function (id,voteType) {    return A2(Vote,id,voteType);}),
+   A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
+   A2($Json$Decode._op[":="],"voteType",$Json$Decode.string));
+   var decodeContents = function () {
+      var content = A9($Json$Decode.object8,
+      F8(function (id,label,desc,oAnswer,status,cType,voteScore,voted) {    return A8(Content,id,label,desc,oAnswer,status,cType,voteScore,voted);}),
+      A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
+      A2($Json$Decode._op[":="],"label",$Json$Decode.string),
+      A2($Json$Decode._op[":="],"description",$Json$Decode.string),
+      A2($Json$Decode._op[":="],"officialAnswer",$Json$Decode.string),
+      A2($Json$Decode._op[":="],"status",$Json$Decode.string),
+      A2($Json$Decode._op[":="],"type",$Json$Decode.string),
+      A2($Json$Decode._op[":="],"voteScore",$Json$Decode.$int),
+      $Json$Decode.maybe(A2($Json$Decode._op[":="],"voteForCurrentUser",decodeVote)));
+      return A2($Json$Decode.at,_U.list(["data"]),$Json$Decode.list(content));
+   }();
+   var fetchContents = function (filterStr) {
+      var url = A2($Http.url,"/api/contents",_U.list([{ctor: "_Tuple2",_0: "filter",_1: filterStr}]));
+      return $Effects.task(A2($Task.map,SetContents,$Task.toMaybe(A2($Http.get,decodeContents,url))));
+   };
+   var update = F2(function (action,model) {
+      var _p10 = action;
+      switch (_p10.ctor)
+      {case "SetContents": var newContents = A2($Maybe.withDefault,model.contents,_p10._0);
+           var newModel = _U.update(model,{contents: newContents});
+           return {ctor: "_Tuple2",_0: newModel,_1: $Effects.none};
+         case "UpdateFilter": var _p11 = _p10._0;
+           var newModel = _U.update(model,{filter: _p11});
+           return {ctor: "_Tuple2",_0: newModel,_1: fetchContents(_p11)};
+         case "RequestVote": return {ctor: "_Tuple2",_0: model,_1: A2(sendVote,_p10._0,_p10._1)};
+         default: var _p12 = _p10._0;
+           if (_p12.ctor === "Just" && _p12._0 === "ok") {
+                 return {ctor: "_Tuple2",_0: model,_1: fetchContents(model.filter)};
+              } else {
+                 return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+              }}
+   });
+   var Model = F2(function (a,b) {    return {contents: a,filter: b};});
+   var init = {ctor: "_Tuple2",_0: A2(Model,_U.list([]),""),_1: fetchContents("")};
+   var contentBasePath = Elm.Native.Port.make(_elm).inbound("contentBasePath",
+   "String",
+   function (v) {
+      return typeof v === "string" || typeof v === "object" && v instanceof String ? v : _U.badPort("a string",v);
    });
    var viewContent = F2(function (address,content) {
+      var contentPath = A2($Basics._op["++"],contentBasePath,$Basics.toString(content.id));
       return A2($Html.div,
-      _U.list([$Html$Attributes.$class("view-content")]),
+      _U.list([$Html$Attributes.$class("content")]),
       _U.list([A2(viewContentVoteComponent,address,content)
-              ,A2($Html.div,
-              _U.list([$Html$Attributes.$class("panel panel-default")]),
+              ,A3($Html.node,
+              "area",
+              _U.list([$Html$Attributes.$class("panel panel-default"),$Html$Attributes.href(contentPath)]),
               _U.list([A2($Html.div,
                       _U.list([$Html$Attributes.$class("panel-heading")]),
                       _U.list([A2($Html.h3,_U.list([$Html$Attributes.$class("panel-title")]),_U.list([$Html.text(content.label)]))
+                              ,viewContentType(content.contentType)
                               ,viewContentStatus(content.status)]))
                       ,A2($Html.div,
                       _U.list([$Html$Attributes.$class("panel-body")]),
@@ -11099,50 +11216,12 @@ Elm.ContentIndex.make = function (_elm) {
       _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("bs-callout")]),_U.list([A2(viewSearchForm,address,model)]))
               ,A2($Html.div,_U.list([]),A2($List.map,viewContent(address),model.contents))]));
    });
-   var Content = F8(function (a,b,c,d,e,f,g,h) {
-      return {id: a,label: b,description: c,officialAnswer: d,status: e,contentType: f,voteScore: g,voteForCurrentUser: h};
-   });
-   var decodeContents = function () {
-      var content = A9($Json$Decode.object8,
-      F8(function (id,label,desc,oAnswer,status,cType,voteScore,voted) {    return A8(Content,id,label,desc,oAnswer,status,cType,voteScore,voted);}),
-      A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
-      A2($Json$Decode._op[":="],"label",$Json$Decode.string),
-      A2($Json$Decode._op[":="],"description",$Json$Decode.string),
-      A2($Json$Decode._op[":="],"officialAnswer",$Json$Decode.string),
-      A2($Json$Decode._op[":="],"status",$Json$Decode.string),
-      A2($Json$Decode._op[":="],"type",$Json$Decode.string),
-      A2($Json$Decode._op[":="],"voteScore",$Json$Decode.$int),
-      $Json$Decode.maybe(A2($Json$Decode._op[":="],"voteForCurrentUser",$Json$Decode.string)));
-      return A2($Json$Decode.at,_U.list(["data"]),$Json$Decode.list(content));
-   }();
-   var fetchContents = function (filterStr) {
-      var url = A2($Http.url,"/api/contents",_U.list([{ctor: "_Tuple2",_0: "filter",_1: filterStr}]));
-      return $Effects.task(A2($Task.map,SetContents,$Task.toMaybe(A2($Http.get,decodeContents,url))));
-   };
-   var update = F2(function (action,model) {
-      var _p4 = action;
-      switch (_p4.ctor)
-      {case "SetContents": var newContents = A2($Maybe.withDefault,model.contents,_p4._0);
-           var newModel = _U.update(model,{contents: newContents});
-           return {ctor: "_Tuple2",_0: newModel,_1: $Effects.none};
-         case "UpdateFilter": var _p5 = _p4._0;
-           var newModel = _U.update(model,{filter: _p5});
-           return {ctor: "_Tuple2",_0: newModel,_1: fetchContents(_p5)};
-         case "RequestVote": return {ctor: "_Tuple2",_0: model,_1: A2(sendVote,_p4._0,_p4._1)};
-         default: var _p6 = _p4._0;
-           if (_p6.ctor === "Just" && _p6._0 === "ok") {
-                 return {ctor: "_Tuple2",_0: model,_1: fetchContents(model.filter)};
-              } else {
-                 return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-              }}
-   });
-   var Model = F2(function (a,b) {    return {contents: a,filter: b};});
-   var init = {ctor: "_Tuple2",_0: A2(Model,_U.list([]),""),_1: fetchContents("")};
    var app = $StartApp.start({init: init,update: update,view: view,inputs: _U.list([])});
    var main = app.html;
    var tasks = Elm.Native.Task.make(_elm).performSignal("tasks",app.tasks);
    return _elm.ContentIndex.values = {_op: _op
                                      ,Model: Model
+                                     ,Vote: Vote
                                      ,Content: Content
                                      ,init: init
                                      ,Up: Up
@@ -11155,12 +11234,15 @@ Elm.ContentIndex.make = function (_elm) {
                                      ,view: view
                                      ,viewContent: viewContent
                                      ,viewContentVoteComponent: viewContentVoteComponent
+                                     ,viewContentType: viewContentType
                                      ,viewContentStatus: viewContentStatus
                                      ,viewContentOfficialAnswer: viewContentOfficialAnswer
                                      ,viewSearchForm: viewSearchForm
                                      ,fetchContents: fetchContents
                                      ,decodeContents: decodeContents
+                                     ,decodeVote: decodeVote
                                      ,sendVote: sendVote
+                                     ,voteType: voteType
                                      ,decodeVoteResult: decodeVoteResult
                                      ,app: app
                                      ,main: main};

@@ -1,12 +1,1 @@
-<h2>Contents</h2>
-
-<div>
-<%= for content <- @contents do %>
-  <a href="<%= admin_content_path(@conn, :show, content) %>">
-    <div class="bs-callout">
-      <h4><%= content.label %></h4>
-      <div><%= content.description %></div>
-    </div>
-  </a>
-<% end %>
-</div>
+<div id="elm-container"></div>

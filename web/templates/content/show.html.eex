@@ -1,63 +1,76 @@
-<h2>
-  <span class="label label-success">
-    <%= @content.type.label %>
-  </span>
-  <%= @content.label %>
-</h2>
-
-<p>
-  <%= @content.description %>
-</p>
-
-<p><em>
-  Added <%= @content.inserted_at %>
-</em></p>
-
-<div class="label label-default">
-  <%= @content.status %>
-</div>
-
-<h3>Score: <%= @content.vote_score %></h3>
-<%= if @content.vote_type_for_current_user != "for" do
-  render IdeaZone.SharedView, "vote_form.html",
-    changeset: @vote_changeset,
-    action: vote_path(@conn, :create),
-    label: "Vote +",
-    vote_type: "for"
-end %>
-<%= if @content.vote_type_for_current_user != "against" do
-  render IdeaZone.SharedView, "vote_form.html",
-    changeset: @vote_changeset,
-    action: vote_path(@conn, :create),
-    label: "Vote -",
-    vote_type: "against"
-end %>
-
-<%= if @content.official_answer do %>
-<h3>Official answer</h3>
-<p><%= @content.official_answer %></p>
-<% end %>
-
-<h3>Comments</h3>
-
-<table>
-<%= Enum.map @content.comments, fn comment -> %>
-  <%= unless comment.hidden do %>
-  <tr>
-    <%= render IdeaZone.SharedView, "comment_row.html",
-        comment: comment %>
-  </tr>
-  <% end %>
-<% end %>
-</table>
-
-<%= unless @content.official_answer do %>
-<%= render IdeaZone.SharedView, "comment_form.html",
-      changeset: @comment_changeset,
-      action: comment_path(@conn, :create),
-      label: "Add comment:" %>
-<% end %>
-
-<div>
-  <%= link "Back", to: content_path(@conn, :index) %>
+<%# DUPLICATION with web/templates/admin/content/show.html.eex %>
+<div class="content">
+  <div class="content__vote">
+    <%= render IdeaZone.SharedView, "vote_form.html",
+      changeset: @vote_changeset,
+      action: @vote_action,
+      vote_type: @vote_settings.up.type,
+      enabled: @vote_settings.up.enabled,
+      label: "⬆"
+    %>
+    <span class="content__vote__score"><%= @content.vote_score %></span>
+    <%= render IdeaZone.SharedView, "vote_form.html",
+      changeset: @vote_changeset,
+      action: @vote_action,
+      vote_type: @vote_settings.down.type,
+      enabled: @vote_settings.down.enabled,
+      label: "⬇"
+    %>
+  </div>
+  <div class="content__details">
+    <div class="content__info panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><%= @content.label %></h3>
+        <span class="content__type label label-default"><%= @content.type.label %></span>
+        <%
+          {status_label_color, status_text} = case @content.status do
+            "new" -> {"label-danger", "new"}
+            "in_progress" -> {"label-warning", "in progress"}
+            "solved" -> {"label-success", "solved"}
+          end
+        %>
+        <span class="content__status label <%= status_label_color %>"><%= status_text %></span>
+      </div>
+      <div class="panel-body">
+        <div><%= @content.description %></div>
+      </div>
+      <div class="panel-footer">
+        <%= if !@content.official_answer || String.length(@content.official_answer) do %>
+          <em>No official answer yet.</em>
+        <%= else %>
+          <div class="official-answer">
+            <span class="official-answer__header">Official answer: </span>
+            <span><%= @content.official_answer %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <div class="content__comments panel panel-info">
+      <div class="panel-heading">
+        <h3 class="panel-title">Comments</h3>
+      </div>
+      <table class="table">
+        <%= Enum.map @content.comments, fn comment -> %>
+          <%= unless comment.hidden do %>
+          <tr>
+            <td><%= comment.text %><em class="date"><%= comment.inserted_at %></em>
+          </tr>
+          <% end %>
+        <% end %>
+      </table>
+      <div class="panel-body">
+        <%= if !@content.official_answer || String.length(@content.official_answer) do %>
+        <%= render(IdeaZone.SharedView, "comment_form.html",
+              changeset: @comment_changeset,
+              action: content_comment_path(@conn, :create, @content),
+              label: "Add comment:") %>
+        <%= else %>
+          Has official answer.
+        <% end %>
+      </div>
+    </div>
+    <div>
+      <%= link "Back", to: content_path(@conn, :index) %>
+    </div>
+  </div>
 </div>

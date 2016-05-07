@@ -1,70 +1,114 @@
-<h2>
-  <span class="label label-success">
-    <%= @content.type.label %>
-  </span>
-  <%= @content.label %>
-</h2>
-
-<p>
-  <%= @content.description %>
-</p>
-
-<p><em>
-  Added <%= @content.inserted_at %>
-</em></p>
-
-<div>
-  <%= link "Edit", to: admin_content_path(@conn, :edit, @content), class: "btn btn-default" %>
-  <%= link @toggle_label, to: admin_content_path(@conn, :toggle, @content), method: :put, class: "btn btn-default" %>
-</div>
-
-<h3>Official answer</h3>
-
-<%= form_for @changeset, admin_content_path(@conn, :update, @content), fn f -> %>
-  <%= if @changeset.action do %>
-    <div class="alert alert-danger">
-      <p>Oops, something went wrong! Please check the errors below:</p>
-      <ul>
-        <%= for {attr, message} <- f.errors do %>
-          <li><%= humanize(attr) %> <%= message %></li>
+<%# DUPLICATION with web/templates/content/show.html.eex %>
+<div class="content">
+  <div class="content__vote">
+    <%= render IdeaZone.SharedView, "vote_form.html",
+      changeset: @vote_changeset,
+      action: @vote_action,
+      vote_type: @vote_settings.up.type,
+      enabled: @vote_settings.up.enabled,
+      label: "⬆"
+    %>
+    <span class="content__vote__score"><%= @content.vote_score %></span>
+    <%= render IdeaZone.SharedView, "vote_form.html",
+      changeset: @vote_changeset,
+      action: @vote_action,
+      vote_type: @vote_settings.down.type,
+      enabled: @vote_settings.down.enabled,
+      label: "⬇"
+    %>
+  </div>
+  <div class="content__details">
+    <div class="content__info panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title"><%= @content.label %></h3>
+        <span class="content__type label label-default"><%= @content.type.label %></span>
+        <%
+          {status_label_color, status_text} = case @content.status do
+            "new" -> {"label-danger", "new"}
+            "in_progress" -> {"label-warning", "in progress"}
+            "solved" -> {"label-success", "solved"}
+          end
+        %>
+        <span class="content__status label <%= status_label_color %>"><%= status_text %></span>
+      </div>
+      <div class="panel-body">
+        <div><%= @content.description %></div>
+      </div>
+      <div class="panel-footer">
+        <%= if !@content.official_answer || String.length(@content.official_answer) do %>
+          <em>No official answer yet.</em>
+        <%= else %>
+          <div class="official-answer">
+            <span class="official-answer__header">Official answer: </span>
+            <span><%= @content.official_answer %></span>
+          </div>
         <% end %>
-      </ul>
+      </div>
     </div>
-  <% end %>
-
-  <div class="form-group">
-    <%= label f, :official_answer, "Official answer", class: "control-label" %>
-    <%= textarea f, :official_answer, class: "form-control" %>
+    <div class="content__actions panel panel-primary">
+      <div class="panel-heading">
+        <h3 class="panel-title">Actions</h3>
+      </div>
+      <div class="panel-body">
+        <div>
+        <%= unless @content.status == "new" do %>
+          <%= link "Mark as new", to: admin_content_path(@conn, :mark_new, @content), method: :put, class: "btn btn-danger" %>
+        <% end %>
+        <%= unless @content.status == "in_progress" do %>
+          <%= link "Mark as in progress", to: admin_content_path(@conn, :mark_in_progress, @content), method: :put, class: "btn btn-warning" %>
+        <% end %>
+        <%= unless @content.status == "solved" do %>
+          <%= link "Mark as solved", to: admin_content_path(@conn, :mark_solved, @content), method: :put, class: "btn btn-success" %>
+        <% end %>
+        <%= link "Edit", to: admin_content_path(@conn, :edit, @content), class: "btn btn-default" %>
+        <%= link @toggle_label, to: admin_content_path(@conn, :toggle, @content), method: :put, class: "btn btn-default" %>
+        </div>
+        <%= form_for @changeset, admin_content_path(@conn, :update, @content), fn f -> %>
+          <%= if @changeset.action do %>
+            <div class="alert alert-danger">
+              <p>Oops, something went wrong! Please check the errors below:</p>
+              <ul>
+                <%= for {attr, message} <- f.errors do %>
+                  <li><%= humanize(attr) %> <%= message %></li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
+          <div class="form-group">
+            <%= label f, :official_answer, "Edit official answer:", class: "control-label" %>
+            <%= textarea f, :official_answer, class: "form-control" %>
+          </div>
+          <div class="form-group">
+            <%= submit "Save", class: "btn btn-default" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    <div class="content__comments panel panel-info">
+      <div class="panel-heading">
+        <h3 class="panel-title">Comments</h3>
+      </div>
+      <table class="table">
+        <%= Enum.map @content.comments, fn comment -> %>
+          <tr>
+            <%= render IdeaZone.Admin.SharedView, "comment_row.html",
+                comment: comment, conn: @conn %>
+          </tr>
+        <% end %>
+      </table>
+      <div class="panel-body">
+        <%= if !@content.official_answer || String.length(@content.official_answer) do %>
+        <%= render(IdeaZone.SharedView, "comment_form.html",
+              changeset: @comment_changeset,
+              action: content_comment_path(@conn, :create, @content),
+              label: "Add comment:") %>
+        <%= else %>
+          Has official answer.
+        <% end %>
+      </div>
+    </div>
+    <div>
+      <%= link "Back", to: content_path(@conn, :index) %>
+    </div>
   </div>
-
-  <div class="form-group">
-    <%= submit "Update official answer", class: "btn btn-default" %>
-  </div>
-<% end %>
-
-<div>
-<%= unless @content.status == "new" do %>
-  <%= link "Mark as new", to: admin_content_path(@conn, :mark_new, @content), method: :put, class: "btn btn-primary" %>
-<% end %>
-<%= unless @content.status == "in_progress" do %>
-  <%= link "Mark as in progress", to: admin_content_path(@conn, :mark_in_progress, @content), method: :put, class: "btn btn-warning" %>
-<% end %>
-<%= unless @content.status == "solved" do %>
-  <%= link "Mark as solved", to: admin_content_path(@conn, :mark_solved, @content), method: :put, class: "btn btn-success" %>
-<% end %>
-</div>
-
-<h3>Comments</h3>
-
-<table class="table table-bordered">
-<%= Enum.map @content.comments, fn comment -> %>
-  <tr>
-    <%= render IdeaZone.Admin.SharedView, "comment_row.html",
-        comment: comment, conn: @conn %>
-  </tr>
-<% end %>
-</table>
-
-<div>
-  <%= link "Back", to: admin_content_path(@conn, :index) %>
 </div>

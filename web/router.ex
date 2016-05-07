@@ -25,9 +25,10 @@ defmodule IdeaZone.Router do
   scope "/", IdeaZone do
     pipe_through :browser # Use the default browser stack
 
-    resources "/contents", ContentController, only: [:index, :show, :new, :create]
-    resources "/comments", CommentController, only: [:create]
-    resources "/votes",    VoteController,    only: [:create]
+    resources "/contents", ContentController, only: [:index, :show, :new, :create] do
+      resources "/votes", VoteController, only: [:create, :update]
+      resources "/comments", CommentController, only: [:create]
+    end
 
     get "/", HomeController, :show
     get "/admin/login", Admin.SessionController, :new
@@ -57,7 +58,8 @@ defmodule IdeaZone.Router do
   scope "/api", IdeaZone do
     pipe_through :api
 
-    resources "/contents", API.ContentController, only: [:index]
-    resources "/votes", API.VoteController, only: [:create]
+    resources "/contents", API.ContentController, only: [:index] do
+      resources "/votes", API.VoteController, only: [:create, :update]
+    end
   end
 end

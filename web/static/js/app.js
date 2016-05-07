@@ -21,5 +21,11 @@ import "deps/phoenix_html/web/static/js/phoenix_html"
 // import socket from "./socket"
 
 // Set up our Elm App
+// We're using ports to provide the Elm app with
+// the path to show contents (/contents/ and /admin/contents
+// when in the admin area).
+const ports = {
+  contentBasePath: document.location.pathname + "/"
+}
 const elmDiv = document.querySelector('#elm-container');
-const elmApp = Elm.embed(Elm.ContentIndex, elmDiv);
+const elmApp = Elm.embed(Elm.ContentIndex, elmDiv, ports);

@@ -1,4 +1,5 @@
 defmodule IdeaZone.API.VoteController do
+  require IEx
   use IdeaZone.Web, :controller
   alias IdeaZone.Vote
 
@@ -14,18 +15,34 @@ defmodule IdeaZone.API.VoteController do
   message.
 
   Expected params:
-    - content_id [String]
     - user_session_token [String]
     - vote_type [String]
+
+  ## TODO
+    - check `content_id` param matches the vote's
   """
-  def create(conn, %{"vote" => vote_params}) do
+  def create(conn, %{"content_id" => content_id, "vote" => vote_params}) do
     user_session_token = get_session(conn, :session_token)
     vote_params = Map.merge(vote_params, %{"user_session_token" => user_session_token})
 
-    changeset = Vote.changeset(%Vote{}, vote_params)
-    case Vote.process_vote(changeset) do
+    changeset = Vote.changeset(%Vote{}, Map.merge(vote_params, %{"content_id" => content_id}))
+
+    case Repo.insert(changeset) do
       {:ok, vote} -> render(conn, "show.json", vote: vote)
-      {:error, messages} -> render(conn, "error.json", messages: messages)
+      {:error, changeset} -> render(conn, "error.json", messages: changeset)
+    end
+  end
+
+  def update(conn, %{"id" => id, "content_id" => _content_id, "vote" => vote_params}) do
+    user_session_token = get_session(conn, :session_token)
+    vote_params = Map.merge(vote_params, %{"user_session_token" => user_session_token})
+
+    vote = Repo.get!(Vote, id)
+    changeset = Vote.changeset(vote, vote_params)
+
+    case Repo.update(changeset) do
+      {:ok, vote} -> render(conn, "show.json", vote: vote)
+      {:error, changeset} -> render(conn, "error.json", messages: changeset)
     end
   end
 end

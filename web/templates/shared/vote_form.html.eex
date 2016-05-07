@@ -1,19 +1,12 @@
 <%= form_for @changeset, @action, fn f -> %>
-  <%= if @changeset.action do %>
-    <div class="alert alert-danger">
-      <p>Oops, something went wrong! Please check the errors below:</p>
-      <ul>
-        <%= for {attr, message} <- f.errors do %>
-          <li><%= humanize(attr) %> <%= message %></li>
-        <% end %>
-      </ul>
-    </div>
-  <% end %>
-
-  <%= hidden_input f, :content_id %>
   <%= hidden_input f, :vote_type, value: @vote_type %>
 
   <div class="form-group">
-    <%= submit @label, class: "btn btn-primary" %>
+    <%=
+      classItems = ~w(btn btn-default)
+      if @enabled == false do classItems = ["disabled" | classItems] end
+      classStr = classItems |> Enum.join(" ")
+      submit @label, class: classStr
+    %>
   </div>
 <% end %>

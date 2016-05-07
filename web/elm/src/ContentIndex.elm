@@ -2,7 +2,7 @@ module ContentIndex where
 
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, for, href, key, id, style, type')
+import Html.Attributes exposing (class, classList, disabled, for, href, key, id, style, type')
 import Html.Events exposing (..)
 import Http
 import Json.Decode exposing ((:=))
@@ -11,11 +11,18 @@ import String
 import StartApp
 import Task
 
+port contentBasePath : String
+
+
 -- MODEL
 
 type alias Model =
   { contents : List Content
   , filter : String
+  }
+type alias Vote =
+  { id : Int
+  , voteType : String
   }
 type alias Content =
   { id : Int
@@ -25,7 +32,7 @@ type alias Content =
   , status : String
   , contentType : String
   , voteScore : Int
-  , voteForCurrentUser : Maybe String
+  , voteForCurrentUser : Maybe Vote
   }
 
 init : (Model, Effects Action)
@@ -35,11 +42,11 @@ init =
 
 -- UPDATE
 
-type VoteType = Up | Down
+type VoteDirection = Up | Down
 type Action
   = SetContents (Maybe (List Content))
   | UpdateFilter String
-  | RequestVote Content VoteType
+  | RequestVote Content VoteDirection
   | ReceivedVoteResult (Maybe String)
 
 update : Action -> Model -> (Model, Effects Action)
@@ -58,8 +65,8 @@ update action model =
       in
         ( newModel, fetchContents filterStr )
 
-    RequestVote content voteType ->
-      ( model, sendVote content voteType )
+    RequestVote content voteDirection ->
+      ( model, sendVote content voteDirection )
 
     ReceivedVoteResult maybeVoteResult ->
       case maybeVoteResult of
@@ -77,44 +84,64 @@ view address model =
 
 viewContent : Signal.Address Action -> Content -> Html
 viewContent address content =
-  div [ class "view-content" ]
-    [ viewContentVoteComponent address content
-    -- , span [ href ("/contents/" ++ (toString content.id)), key (toString content.id) ]
-    , div [ class "panel panel-default" ]
-      [ div [ class "panel-heading" ]
-        [ h3 [ class "panel-title" ] [ text content.label ]
-        , viewContentStatus content.status
-        ]
-      , div [ class "panel-body" ]
-        [ div [] [ text content.description ] ]
-      , div [ class "panel-footer" ]
-        [ viewContentOfficialAnswer content.officialAnswer
+  let
+    contentPath = contentBasePath ++ toString(content.id)
+  in
+    div [ class "content" ]
+      [ viewContentVoteComponent address content
+      , node "area" [ class "panel panel-default", href contentPath ]
+        [ div [ class "panel-heading" ]
+          [ h3 [ class "panel-title" ] [ text content.label ]
+          , viewContentType content.contentType
+          , viewContentStatus content.status
+          ]
+        , div [ class "panel-body" ]
+          [ div [] [ text content.description ] ]
+        , div [ class "panel-footer" ]
+          [ viewContentOfficialAnswer content.officialAnswer
+          ]
         ]
       ]
-    ]
 
 viewContentVoteComponent : Signal.Address Action -> Content -> Html
 viewContentVoteComponent address content =
   let
-    voteUpButton = a
-      [ class "btn btn-default view-content__vote__button"
+    buttonsDisabled = case content.voteForCurrentUser of
+      Nothing -> { up = False, down = False }
+      Just vote -> case vote.voteType of
+        "for" -> { up = True, down = False }
+        "against" -> { up = False, down = True }
+        _ -> { up = False, down = False }
+    voteUpButton = span
+      [ classList
+        [ ("disabled", buttonsDisabled.up)
+        , ("btn btn-default content__vote__button", True)
+        ]
       , onClick address (RequestVote content Up)
       ]
       [ text "⬆" ]
     voteScore = span
-      [ class "view-content__vote__score" ]
+      [ class "content__vote__score" ]
       [ text (toString content.voteScore) ]
     voteDownButton = span
-      [ class "btn btn-default view-content__vote__button"
+      [ classList
+        [ ("disabled", buttonsDisabled.down)
+        , ("btn btn-default content__vote__button", True)
+        ]
       , onClick address (RequestVote content Down)
+      , disabled buttonsDisabled.down
       ]
       [ text "⬇" ]
   in
-    div [ class "view-content__vote" ]
+    div [ class "content__vote" ]
       [ voteUpButton
       , voteScore
       , voteDownButton
       ]
+
+viewContentType : String -> Html
+viewContentType contentType =
+  span [ class ("content__type label label-default") ] [ text contentType ]
 
 viewContentStatus : String -> Html
 viewContentStatus status =
@@ -130,12 +157,12 @@ viewContentStatus status =
       "solved" -> "solved"
       _ -> ""
   in
-    span [ class ("view-content__status label " ++ labelColor) ] [ text statusText ]
+    span [ class ("content__status label " ++ labelColor) ] [ text statusText ]
 
 viewContentOfficialAnswer : String -> Html
 viewContentOfficialAnswer officialAnswer =
   case String.isEmpty officialAnswer of
-    True -> div [] [ text "No official answer yet" ]
+    True -> em [] [ text "No official answer yet." ]
     False ->
       div [ class "official-answer" ]
         [ span [ class "official-answer__header" ] [ text "Official answer:" ]
@@ -174,7 +201,7 @@ fetchContents filterStr =
       |> Task.map SetContents
       |> Effects.task
 
-decodeContents: Json.Decoder (List Content)
+decodeContents : Json.Decoder (List Content)
 decodeContents =
   let
     content =
@@ -187,26 +214,65 @@ decodeContents =
         ("status" := Json.string)
         ("type" := Json.string)
         ("voteScore" := Json.int)
-        (Json.maybe ("voteForCurrentUser" := Json.string))
+        (Json.maybe ("voteForCurrentUser" := decodeVote))
   in
     Json.at ["data"] (Json.list content)
 
-sendVote : Content -> VoteType -> Effects Action
-sendVote content voteType =
+decodeVote : Json.Decoder (Vote)
+decodeVote =
+  Json.object2 (\id voteType -> (Vote id voteType))
+    ("id" := Json.int)
+    ("voteType" := Json.string)
+
+sendVote : Content -> VoteDirection -> Effects Action
+sendVote content voteDirection =
   let
-    voteTypeStr = case voteType of
-      Up -> "for"
-      Down -> "Down"
-    url = Http.url "/api/votes" [ ("vote[content_id]", toString content.id), ("vote[vote_type]", voteTypeStr) ]
+    maybeVote = content.voteForCurrentUser
+    contentId = toString(content.id)
+    votePath = case maybeVote of
+      Nothing -> "/api/contents/" ++ contentId ++ "/votes"
+      Just vote -> "/api/contents/" ++ contentId ++ "/votes/" ++ toString(vote.id)
+    updateParams = case maybeVote of
+      Nothing -> []
+      Just vote -> [("id", toString(vote.id))]
+    params =
+      [ ("vote[vote_type]", (voteType maybeVote voteDirection))
+      , ("content_id", contentId)
+      ] ++ updateParams
+    verb = case maybeVote of
+      Nothing -> "POST"
+      Just _ -> "PUT"
+    request =
+      { verb = verb
+      , headers = []
+      , url = Http.url votePath params
+      , body = Http.empty
+      }
   in
-    Http.post decodeVoteResult url Http.empty
+    Http.fromJson decodeVoteResult (Http.send Http.defaultSettings request)
       |> Task.toMaybe
       |> Task.map ReceivedVoteResult
       |> Effects.task
 
+voteType : Maybe Vote -> VoteDirection -> String
+voteType maybeVote direction =
+  case (maybeVote, direction) of
+    (Nothing, Up) -> "for"
+    (Nothing, Down) -> "against"
+    (Just vote, _) ->
+      case (vote.voteType, direction) of
+        ("for", Up) -> "for"
+        ("for", Down) -> "neutral"
+        ("neutral", Up) -> "for"
+        ("neutral", Down) -> "against"
+        ("against", Up) -> "neutral"
+        ("against", Down) -> "against"
+        (_, _) -> "neutral"
+
 decodeVoteResult : Json.Decoder String
 decodeVoteResult =
   Json.at ["status"] Json.string
+
 
 -- APP
 

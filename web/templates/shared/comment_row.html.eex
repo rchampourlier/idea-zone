@@ -1,6 +1,0 @@
-<td>
-  <%= @comment.inserted_at %>
-</td>
-<td>
-  <%= @comment.text %>
-</td>

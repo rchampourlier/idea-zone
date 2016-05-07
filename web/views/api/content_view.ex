@@ -10,6 +10,11 @@ defmodule IdeaZone.API.ContentView do
   end
 
   def render("content.json", %{content: content}) do
+    vote_for_current_user = content.vote_for_current_user
+    vote_for_current_user = case vote_for_current_user do
+      nil -> nil
+      vote -> %{id: vote.id, voteType: vote.vote_type}
+    end
     %{id: content.id,
       label: content.label,
       description: content.description,
@@ -17,6 +22,7 @@ defmodule IdeaZone.API.ContentView do
       status: content.status,
       type: content.type.label,
       voteScore: content.vote_score,
-      voteForCurrentUser: content.vote_type_for_current_user}
+      voteForCurrentUser: vote_for_current_user
+    }
   end
 end

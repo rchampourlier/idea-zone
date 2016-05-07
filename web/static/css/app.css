@@ -58,11 +58,37 @@ form.link, form.button {
   flex-grow: 1;
 }
 
-.view-content {
+.content {
   display: flex;
 }
 
-.view-content__vote {
+.content__comments .panel-body {
+  padding-bottom: 0;
+}
+
+.content__comments .table {
+  margin-top: 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.content__comments .table tr td {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.content__comments .table tr td .date {
+  margin-left: 1em;
+  font-style: italic;
+  font-size: 0.9em;
+  color: #BBB;
+}
+
+.content__comments form {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.content__vote {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -70,17 +96,39 @@ form.link, form.button {
   margin-bottom: 20px; /* Same as .panel */
 }
 
-.view-content__status {
+.content__vote form {
+  margin: 0;
+}
+
+.content__vote .form-group {
+  margin: 0;
+}
+
+.content__vote__score {
+  font-size: 3em;
+}
+
+.content__status { /* Similar to .content__type */
   font-size: 1.2em;
+  font-weight: normal;
   text-transform: uppercase;
   padding-bottom: .2em; /* Overrides .label default (.3em) */
 }
 
-.view-content__vote__score {
-  font-size: 3em;
+.content__type { /* Similar to .content__status */
+  font-size: 1.2em;
+  font-weight: normal;
+  text-transform: uppercase;
+  padding-bottom: .2em; /* Overrides .label default (.3em) */
+  background-color: #BBB;
+  margin-right: .5em;
 }
 
 .official-answer__header {
   font-weight: bold;
   padding-right: 5px;
+}
+
+.content__actions .panel-body {
+  padding-bottom: 0;
 }

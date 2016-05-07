@@ -1,25 +1,39 @@
 defmodule IdeaZone.Admin.ContentController do
   use IdeaZone.Web, :controller
 
+  alias IdeaZone.Comment
   alias IdeaZone.Content
-  alias IdeaZone.ContentType
+  alias IdeaZone.ContentController
+  alias IdeaZone.Vote
 
   plug :scrub_params, "content" when action in [:create, :update]
 
-  def index(conn, _params) do
-    IdeaZone.ContentController.index(conn, _params)
+  def index(conn, params) do
+    IdeaZone.ContentController.index(conn, params)
   end
 
+  # DUPLICATION with web/controllers/content_controller.ex
   def show(conn, %{"id" => id}) do
+    user_session_token = get_session(conn, :session_token)
+
     content = Content
       |> Repo.get!(id)
-      |> Repo.preload([:comments, :type])
+      |> Repo.preload([:comments, :type, :votes])
+      |> Content.calculate_vote_score
+      |> Content.calculate_vote_for_user(user_session_token)
 
-    changeset = Content.changeset(content)
+    changeset = Content.changeset(content, %{})
+    comment_changeset = Comment.changeset(%Comment{content_id: id}, %{})
+    vote = Content.get_vote_for_user(content, user_session_token)
+    vote_changeset = Vote.changeset(vote || %Vote{}, %{})
 
     conn
       |> assign(:content, content)
       |> assign(:changeset, changeset)
+      |> assign(:comment_changeset, comment_changeset)
+      |> assign(:vote_changeset, vote_changeset)
+      |> assign(:vote_action, ContentController.vote_action(conn, content, vote))
+      |> assign(:vote_settings, ContentController.vote_settings(vote))
       |> assign(:toggle_label, toggle_label(content.hidden))
       |> render("show.html")
   end
@@ -28,7 +42,7 @@ defmodule IdeaZone.Admin.ContentController do
     content = Repo.get!(Content, id)
     changeset = Content.changeset(content)
     conn
-      |> assign_types
+      |> ContentController.assign_types
       |> assign(:changeset, changeset)
       |> assign(:content, content)
       |> render("edit.html")
@@ -45,7 +59,7 @@ defmodule IdeaZone.Admin.ContentController do
         |> redirect(to: admin_content_path(conn, :show, content))
       {:error, changeset} ->
         conn
-          |> assign_types
+          |> ContentController.assign_types
           |> assign(:content, content)
           |> assign(:changeset, changeset)
           |> render("edit.html")
@@ -62,7 +76,7 @@ defmodule IdeaZone.Admin.ContentController do
         conn
           |> put_flash(:info, "Content successfully #{label}")
           |> redirect(to: admin_content_path(conn, :show, content))
-      {:error, changeset} ->
+      {:error, _changeset} ->
         conn
           |> put_flash(:info, "Could not update the content")
           |> redirect(to: admin_content_path(conn, :show, content))
@@ -85,11 +99,6 @@ defmodule IdeaZone.Admin.ContentController do
     |> redirect(to: content_path(conn, :index))
   end
 
-  defp assign_types(conn) do
-    types = Repo.all(from(type in ContentType, select: {type.label, type.id}))
-    conn |> assign(:types, types)
-  end
-
   defp toggle_label(true), do: "Show"
   defp toggle_label(_), do: "Hide"
 
@@ -102,7 +111,7 @@ defmodule IdeaZone.Admin.ContentController do
         conn
           |> put_flash(:info, "Successfully updated status.")
           |> redirect(to: admin_content_path(conn, :show, content))
-      {:error, changeset} ->
+      {:error, _changeset} ->
         conn
           |> put_flash(:info, "Could not change the status.")
           |> redirect(to: admin_content_path(conn, :show, content))

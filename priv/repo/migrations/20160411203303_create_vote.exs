@@ -4,7 +4,7 @@ defmodule IdeaZone.Repo.Migrations.CreateVote do
   def change do
     create table(:votes) do
       add :content_id, references(:contents)
-      add :vote_type, :string
+      add :vote_type, :string, default: "neutral"
       add :user_session_token, :string
 
       timestamps

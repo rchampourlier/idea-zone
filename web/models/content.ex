@@ -19,7 +19,7 @@ defmodule IdeaZone.Content do
   ## TODO
     - add validation on status
   """
-  
+
   use IdeaZone.Web, :model
   alias IdeaZone.Repo
   alias IdeaZone.Vote
@@ -32,7 +32,7 @@ defmodule IdeaZone.Content do
     field :language, :string
     field :status, :string
     field :vote_score, :integer, virtual: true
-    field :vote_type_for_current_user, :string, virtual: true
+    field :vote_for_current_user, :map, virtual: true
 
     belongs_to :type, IdeaZone.ContentType
 
@@ -88,7 +88,6 @@ defmodule IdeaZone.Content do
       WHERE
         ( ts_rank(contents.tsv, '#{sql_terms}') <> 0
           OR ts_rank(contents.tsv, to_tsquery('#{sql_terms}')) <> 0 )
-        AND hidden = FALSE
       ORDER BY ts_rank(contents.tsv, '#{sql_terms}') DESC
       LIMIT 10;
     """
@@ -96,22 +95,37 @@ defmodule IdeaZone.Content do
     response.rows |> Enum.flat_map(&(&1))
   end
 
+  @doc """
+  Assumes content's votes have been preloaded.
+  """
   def calculate_vote_score(content) do
     vote_score = content.votes
       |> Enum.reduce(0, fn(vote, acc) -> acc + score_for_vote_type(vote.vote_type) end)
     %{content | vote_score: vote_score}
   end
 
-  def calculate_vote_type_for_current_user(content, user_session_token) do
-    vote = content.votes
-      |> Enum.find(nil, fn(vote) -> vote.user_session_token == user_session_token end)
-    %{content | vote_type_for_current_user: vote_type(vote)}
+  @doc """
+  Assumes content's votes have been preloaded.
+
+  ## Params
+    - `content`
+    - `session_token`: String, session token for the user
+  """
+  def calculate_vote_for_user(content, session_token) do
+    %{content | vote_for_current_user: get_vote_for_user(content, session_token)}
+  end
+
+  @doc """
+  Assumes content's votes have been preloaded.
+  """
+  def get_vote_for_user(content, user_session_token) do
+    content.votes
+      |> Enum.find(nil, fn(vote) ->
+          vote.user_session_token == user_session_token
+        end)
   end
 
   defp score_for_vote_type("for"), do: 1
   defp score_for_vote_type("against"), do: -1
   defp score_for_vote_type(_), do: 0
-
-  defp vote_type(%{vote_type: vt}), do: vt
-  defp vote_type(nil), do: nil
 end
