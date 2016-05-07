@@ -35,7 +35,7 @@
         <div><%= @content.description %></div>
       </div>
       <div class="panel-footer">
-        <%= if !@content.official_answer || String.length(@content.official_answer) do %>
+        <%= if (!@content.official_answer) || String.length(@content.official_answer) == 0 do %>
           <em>No official answer yet.</em>
         <%= else %>
           <div class="official-answer">
@@ -58,16 +58,14 @@
           <% end %>
         <% end %>
       </table>
-      <div class="panel-body">
-        <%= if !@content.official_answer || String.length(@content.official_answer) do %>
+      <%= if (!@content.official_answer) || String.length(@content.official_answer) == 0 do %>
+        <div class="panel-body">
         <%= render(IdeaZone.SharedView, "comment_form.html",
               changeset: @comment_changeset,
               action: content_comment_path(@conn, :create, @content),
               label: "Add comment:") %>
-        <%= else %>
-          Has official answer.
-        <% end %>
-      </div>
+        </div>
+      <% end %>
     </div>
     <div>
       <%= link "Back", to: content_path(@conn, :index) %>
