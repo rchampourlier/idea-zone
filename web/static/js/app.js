@@ -25,7 +25,8 @@ import "deps/phoenix_html/web/static/js/phoenix_html"
 // the path to show contents (/contents/ and /admin/contents
 // when in the admin area).
 const ports = {
-  contentBasePath: document.location.pathname + "/"
+  contentBasePath: document.location.pathname + "/",
+  adminArea: document.location.pathname.includes("admin/")
 }
 const elmDiv = document.querySelector('#elm-container');
 const elmApp = Elm.embed(Elm.ContentIndex, elmDiv, ports);

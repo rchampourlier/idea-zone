@@ -11164,29 +11164,7 @@ Elm.ContentIndex.make = function (_elm) {
       $Json$Decode.maybe(A2($Json$Decode._op[":="],"voteForCurrentUser",decodeVote)));
       return A2($Json$Decode.at,_U.list(["data"]),$Json$Decode.list(content));
    }();
-   var fetchContents = function (filterStr) {
-      var url = A2($Http.url,"/api/contents",_U.list([{ctor: "_Tuple2",_0: "filter",_1: filterStr}]));
-      return $Effects.task(A2($Task.map,SetContents,$Task.toMaybe(A2($Http.get,decodeContents,url))));
-   };
-   var update = F2(function (action,model) {
-      var _p10 = action;
-      switch (_p10.ctor)
-      {case "SetContents": var newContents = A2($Maybe.withDefault,model.contents,_p10._0);
-           var newModel = _U.update(model,{contents: newContents});
-           return {ctor: "_Tuple2",_0: newModel,_1: $Effects.none};
-         case "UpdateFilter": var _p11 = _p10._0;
-           var newModel = _U.update(model,{filter: _p11});
-           return {ctor: "_Tuple2",_0: newModel,_1: fetchContents(_p11)};
-         case "RequestVote": return {ctor: "_Tuple2",_0: model,_1: A2(sendVote,_p10._0,_p10._1)};
-         default: var _p12 = _p10._0;
-           if (_p12.ctor === "Just" && _p12._0 === "ok") {
-                 return {ctor: "_Tuple2",_0: model,_1: fetchContents(model.filter)};
-              } else {
-                 return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-              }}
-   });
    var Model = F2(function (a,b) {    return {contents: a,filter: b};});
-   var init = {ctor: "_Tuple2",_0: A2(Model,_U.list([]),""),_1: fetchContents("")};
    var contentBasePath = Elm.Native.Port.make(_elm).inbound("contentBasePath",
    "String",
    function (v) {
@@ -11215,6 +11193,34 @@ Elm.ContentIndex.make = function (_elm) {
       _U.list([]),
       _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("bs-callout")]),_U.list([A2(viewSearchForm,address,model)]))
               ,A2($Html.div,_U.list([]),A2($List.map,viewContent(address),model.contents))]));
+   });
+   var adminArea = Elm.Native.Port.make(_elm).inbound("adminArea",
+   "Bool",
+   function (v) {
+      return typeof v === "boolean" ? v : _U.badPort("a boolean (true or false)",v);
+   });
+   var fetchContents = function (filterStr) {
+      var includeHidden = function () {    var _p10 = adminArea;if (_p10 === true) {    return "true";} else {    return "false";}}();
+      var url = A2($Http.url,"/api/contents",_U.list([{ctor: "_Tuple2",_0: "filter",_1: filterStr},{ctor: "_Tuple2",_0: "include_hidden",_1: includeHidden}]));
+      return $Effects.task(A2($Task.map,SetContents,$Task.toMaybe(A2($Http.get,decodeContents,url))));
+   };
+   var init = {ctor: "_Tuple2",_0: A2(Model,_U.list([]),""),_1: fetchContents("")};
+   var update = F2(function (action,model) {
+      var _p11 = action;
+      switch (_p11.ctor)
+      {case "SetContents": var newContents = A2($Maybe.withDefault,model.contents,_p11._0);
+           var newModel = _U.update(model,{contents: newContents});
+           return {ctor: "_Tuple2",_0: newModel,_1: $Effects.none};
+         case "UpdateFilter": var _p12 = _p11._0;
+           var newModel = _U.update(model,{filter: _p12});
+           return {ctor: "_Tuple2",_0: newModel,_1: fetchContents(_p12)};
+         case "RequestVote": return {ctor: "_Tuple2",_0: model,_1: A2(sendVote,_p11._0,_p11._1)};
+         default: var _p13 = _p11._0;
+           if (_p13.ctor === "Just" && _p13._0 === "ok") {
+                 return {ctor: "_Tuple2",_0: model,_1: fetchContents(model.filter)};
+              } else {
+                 return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
+              }}
    });
    var app = $StartApp.start({init: init,update: update,view: view,inputs: _U.list([])});
    var main = app.html;

@@ -4,17 +4,19 @@ defmodule IdeaZone.API.ContentController do
 
   import Ecto.Query, only: [from: 2]
 
-  def index(conn, %{"filter" => ""}) do
+  def index(conn, %{"filter" => "", "include_hidden" => include_hidden}) do
+    include_hidden = if include_hidden == "true" do true else false end
     user_session_token = get_session(conn, :session_token)
-    contents = fetch(user_session_token, include_hidden: is_admin(conn))
+    contents = fetch(user_session_token, include_hidden: include_hidden && is_admin(conn))
     conn
       |> assign(:contents, contents)
       |> render("index.json")
   end
-  def index(conn, %{"filter" => filter}) do
+  def index(conn, %{"filter" => filter, "include_hidden" => include_hidden}) do
+    include_hidden = if include_hidden == "true" do true else false end
     user_session_token = get_session(conn, :session_token)
     search_terms = filter |> String.split |> Enum.reject(fn(s) -> String.length(s) == 0 end)
-    contents = fetch(user_session_token, search_terms, include_hidden: is_admin(conn))
+    contents = fetch(user_session_token, search_terms, include_hidden: include_hidden && is_admin(conn))
     conn
       |> assign(:contents, contents)
       |> render("index.json")

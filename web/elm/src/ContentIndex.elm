@@ -11,6 +11,7 @@ import String
 import StartApp
 import Task
 
+port adminArea : Bool
 port contentBasePath : String
 
 
@@ -194,7 +195,10 @@ viewSearchForm address model =
 fetchContents : String -> Effects Action
 fetchContents filterStr =
   let
-    url = Http.url "/api/contents" [ ("filter", filterStr) ]
+    includeHidden = case adminArea of
+      True -> "true"
+      False -> "false"
+    url = Http.url "/api/contents" [ ("filter", filterStr), ("include_hidden", includeHidden) ]
   in
     Http.get decodeContents url
       |> Task.toMaybe
