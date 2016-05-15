@@ -22,13 +22,13 @@ import "bootstrap-sass"
 
 // import socket from "./socket"
 
-// Set up our Elm App
+// Setup our Elm App
 // We're using ports to provide the Elm app with
 // the path to show contents (/contents/ and /admin/contents
 // when in the admin area).
 const elmAppConfig = {
-  contentBasePath: document.location.pathname + "/",
-  adminArea: document.location.pathname.includes("admin/")
-}
+  contentBasePath: window.location.pathname + "/",
+  adminArea: window.location.pathname.indexOf("/admin") == 0
+};
 var node = document.getElementById('elm-container');
 var app = Elm.ContentIndex.embed(node, elmAppConfig);
