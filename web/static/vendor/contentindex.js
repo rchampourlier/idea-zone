@@ -11153,13 +11153,17 @@ Elm.ContentIndex.make = function (_elm) {
       _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "disabled",_1: buttonsDisabled.up}
                                                   ,{ctor: "_Tuple2",_0: "btn btn-default content__vote__button",_1: true}]))
               ,A2($Html$Events.onClick,address,A2(RequestVote,content,Up))]),
-      _U.list([$Html.text("⬆")]));
+      _U.list([A2($Html.span,
+      _U.list([$Html$Attributes.$class("glyphicon glyphicon-arrow-up"),A2($Html$Attributes.attribute,"aria-hidden","true")]),
+      _U.list([]))]));
       var voteDownButton = A2($Html.span,
       _U.list([$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "disabled",_1: buttonsDisabled.down}
                                                   ,{ctor: "_Tuple2",_0: "btn btn-default content__vote__button",_1: true}]))
               ,A2($Html$Events.onClick,address,A2(RequestVote,content,Down))
               ,$Html$Attributes.disabled(buttonsDisabled.down)]),
-      _U.list([$Html.text("⬇")]));
+      _U.list([A2($Html.span,
+      _U.list([$Html$Attributes.$class("glyphicon glyphicon-arrow-down"),A2($Html$Attributes.attribute,"aria-hidden","true")]),
+      _U.list([]))]));
       return A2($Html.div,_U.list([$Html$Attributes.$class("content__vote")]),_U.list([voteUpButton,voteScore,voteDownButton]));
    });
    var ContentType = F3(function (a,b,c) {    return {id: a,label: b,active: c};});

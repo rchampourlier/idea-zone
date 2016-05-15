@@ -160,7 +160,7 @@ viewContentVoteComponent address content =
         ]
       , onClick address (RequestVote content Up)
       ]
-      [ text "⬆" ]
+      [ span [ class "glyphicon glyphicon-arrow-up", attribute "aria-hidden" "true" ] [] ]
     voteScore = span
       [ class "content__vote__score" ]
       [ text (toString content.voteScore) ]
@@ -172,7 +172,7 @@ viewContentVoteComponent address content =
       , onClick address (RequestVote content Down)
       , disabled buttonsDisabled.down
       ]
-      [ text "⬇" ]
+      [ span [ class "glyphicon glyphicon-arrow-down", attribute "aria-hidden" "true" ] [] ]
   in
     div [ class "content__vote" ]
       [ voteUpButton
