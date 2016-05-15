@@ -1,24 +1,26 @@
-module ContentIndex where
+module ContentIndex exposing (..)
 
-import Effects exposing (Effects, Never)
+import Debug
 import Html exposing (..)
-import Html.Attributes exposing (attribute, class, classList, disabled, for, href, key, id, size, style, type')
+import Html.App as Html
+import Html.Attributes exposing (attribute, class, classList, disabled, for, href, id, size, style, type')
 import Html.Events exposing (..)
 import Http
 import Json.Decode exposing ((:=))
 import Json.Decode as Json
 import String
-import StartApp
-import Task
-
-port adminArea : Bool
-port contentBasePath : String
+import Task exposing (..)
 
 
 -- MODEL
 
+type alias Config =
+  { adminArea : Bool
+  , contentBasePath : String
+  }
 type alias Model =
-  { contents : List Content
+  { config : Config
+  , contents : List Content
   , contentTypes : List ContentType
   , filterStr : String
   }
@@ -42,60 +44,46 @@ type alias ContentType =
   , active : Bool
   }
 
-init : (Model, Effects Action)
-init =
+init : Config -> (Model, Cmd Msg)
+init config =
   let
-    actions = Effects.batch
-      [ fetchContents ""
+    actions = Cmd.batch
+      [ fetchContents config.adminArea ""
       , fetchContentTypes
       ]
   in
-    ( Model [] [] "", actions )
+    ( Model config [] [] "", actions )
 
 
 -- UPDATE
 
 type VoteDirection = Up | Down
-type Action
-  = SetContents (Maybe (List Content))
-  | SetContentTypes (Maybe (List ContentType))
+type Msg
+  = SetContents (List Content)
+  | SetContentTypes (List ContentType)
   | UpdateFilter String
   | RequestVote Content VoteDirection
-  | ReceivedVoteResult (Maybe String)
+  | ReceivedVoteResult String
   | ToggleContentType ContentType
+  | HandleError String
 
-update : Action -> Model -> (Model, Effects Action)
+update : Msg -> Model -> (Model, Cmd Msg)
 update action model =
   case action of
-    SetContents contents ->
-      let
-        newContents = Maybe.withDefault model.contents contents
-        newModel = { model | contents = newContents }
-      in
-        ( newModel, Effects.none )
-
-    SetContentTypes contentTypes ->
-      let
-        newContentTypes = Maybe.withDefault model.contentTypes contentTypes
-        newModel = { model | contentTypes = newContentTypes }
-      in
-        ( newModel, Effects.none )
+    SetContents contents -> ( { model | contents = contents }, Cmd.none )
+    SetContentTypes contentTypes -> ( { model | contentTypes = contentTypes }, Cmd.none )
 
     UpdateFilter inputFilterStr ->
       let
         newModel = { model | filterStr = inputFilterStr }
       in
-        ( newModel, fetchContents inputFilterStr )
+        ( newModel, fetchContents model.config.adminArea inputFilterStr )
 
     RequestVote content voteDirection ->
       ( model, sendVote content voteDirection )
 
-    ReceivedVoteResult maybeVoteResult ->
-      case maybeVoteResult of
-        Just "ok" ->
-          ( model, fetchContents model.filterStr )
-        _ ->
-          ( model, Effects.none )
+    ReceivedVoteResult voteResult ->
+      ( model, fetchContents model.config.adminArea model.filterStr )
 
     ToggleContentType contentType ->
       let
@@ -105,10 +93,14 @@ update action model =
             else ct
         newModel = { model | contentTypes = List.map updateContentType model.contentTypes }
       in
-        ( newModel, Effects.none )
+        ( newModel, Cmd.none )
 
-view : Signal.Address Action -> Model -> Html
-view address model =
+    HandleError string ->
+      Debug.log string
+      ( model, Cmd.none )
+
+view : Model -> Html Msg
+view model =
   let
     withActiveContentType content =
       let contentType = List.filter (\ct -> ct.label == content.contentType) model.contentTypes |> List.head
@@ -119,17 +111,17 @@ view address model =
     visibleContents = List.filter withActiveContentType model.contents
   in
     div []
-      [ viewFilter address model
-      , div [] (List.map (viewContent address) visibleContents)
+      [ viewFilter model
+      , div [] (List.map (viewContent model.config.contentBasePath) visibleContents)
       ]
 
-viewContent : Signal.Address Action -> Content -> Html
-viewContent address content =
+viewContent : String -> Content -> Html Msg
+viewContent basePath content =
   let
-    contentPath = contentBasePath ++ toString(content.id)
+    contentPath = basePath ++ toString(content.id)
   in
     div [ class "content" ]
-      [ viewContentVoteComponent address content
+      [ viewContentVoteComponent content
       , node "area" [ class "panel panel-default", href contentPath ]
         [ div [ class "panel-heading" ]
           [ h3 [ class "panel-title" ] [ text content.label ]
@@ -144,8 +136,8 @@ viewContent address content =
         ]
       ]
 
-viewContentVoteComponent : Signal.Address Action -> Content -> Html
-viewContentVoteComponent address content =
+viewContentVoteComponent : Content -> Html Msg
+viewContentVoteComponent content =
   let
     buttonsDisabled = case content.voteForCurrentUser of
       Nothing -> { up = False, down = False }
@@ -158,7 +150,7 @@ viewContentVoteComponent address content =
         [ ("disabled", buttonsDisabled.up)
         , ("btn btn-default content__vote__button", True)
         ]
-      , onClick address (RequestVote content Up)
+      , onClick (RequestVote content Up)
       ]
       [ span [ class "glyphicon glyphicon-arrow-up", attribute "aria-hidden" "true" ] [] ]
     voteScore = span
@@ -169,7 +161,7 @@ viewContentVoteComponent address content =
         [ ("disabled", buttonsDisabled.down)
         , ("btn btn-default content__vote__button", True)
         ]
-      , onClick address (RequestVote content Down)
+      , onClick (RequestVote content Down)
       , disabled buttonsDisabled.down
       ]
       [ span [ class "glyphicon glyphicon-arrow-down", attribute "aria-hidden" "true" ] [] ]
@@ -180,11 +172,11 @@ viewContentVoteComponent address content =
       , voteDownButton
       ]
 
-viewContentType : String -> Html
+viewContentType : String -> Html Msg
 viewContentType contentType =
   span [ class ("content__type label label-default") ] [ text contentType ]
 
-viewContentStatus : String -> Html
+viewContentStatus : String -> Html Msg
 viewContentStatus status =
   let
     labelColor = case status of
@@ -200,7 +192,7 @@ viewContentStatus status =
   in
     span [ class ("content__status label " ++ labelColor) ] [ text statusText ]
 
-viewContentOfficialAnswer : String -> Html
+viewContentOfficialAnswer : String -> Html Msg
 viewContentOfficialAnswer officialAnswer =
   case String.isEmpty officialAnswer of
     True -> em [] [ text "No official answer yet." ]
@@ -210,20 +202,20 @@ viewContentOfficialAnswer officialAnswer =
         , span [] [ text officialAnswer ]
         ]
 
-viewFilter : Signal.Address Action -> Model -> Html
-viewFilter address model =
+viewFilter : Model -> Html Msg
+viewFilter model =
   div [ class "filter-panel bs-callout" ]
-    [ viewFilterText address model
-    , viewFilterContentTypes address model
+    [ viewFilterText model
+    , viewFilterContentTypes model
     ]
 
-viewFilterText : Signal.Address Action -> Model -> Html
-viewFilterText address model =
+viewFilterText : Model -> Html Msg
+viewFilterText model =
   form [ class "form-inline" ]
     [ div [ class "form-group" ]
       [ label [ for "filterInput" ] [ text "Search for something" ]
       , input
-        [ on "input" targetValue (\str -> Signal.message address (UpdateFilter str))
+        [ onInput UpdateFilter
         , type' "text"
         , class "form-control"
         , id "filterInput"
@@ -237,14 +229,14 @@ viewFilterText address model =
       [ text "Create a new one" ]
     ]
 
-viewFilterContentTypes : Signal.Address Action -> Model -> Html
-viewFilterContentTypes address model =
+viewFilterContentTypes : Model -> Html Msg
+viewFilterContentTypes model =
   let
     pill contentType =
       li
         [ attribute "role" "presentation"
         , classList [ ("active", contentType.active) ]
-        , onClick address (ToggleContentType contentType)
+        , onClick (ToggleContentType contentType)
         ]
         [ a [ href "#" ] [ text contentType.label ] ]
     pills = List.map pill model.contentTypes
@@ -254,15 +246,21 @@ viewFilterContentTypes address model =
 
 -- EFFECTS
 
-fetchContentTypes : Effects Action
-fetchContentTypes =
+handleHttpError : Http.Error -> Msg
+handleHttpError err =
   let
-    url = Http.url "/api/content_types" []
+    errorMessage = case err of
+      Http.Timeout -> "Timeout"
+      Http.NetworkError -> "NetworkError"
+      Http.UnexpectedPayload message -> "UnexpectedPayload " ++ message
+      Http.BadResponse code message -> "BadResponse " ++ (toString code) ++ " " ++ message
   in
-    Http.get decodeContentTypes url
-      |> Task.toMaybe
-      |> Task.map SetContentTypes
-      |> Effects.task
+    HandleError errorMessage
+
+fetchContentTypes : Cmd Msg
+fetchContentTypes =
+  Http.get decodeContentTypes "/api/content_types"
+    |> Task.perform handleHttpError (\contentTypes -> SetContentTypes contentTypes)
 
 decodeContentTypes : Json.Decoder (List ContentType)
 decodeContentTypes =
@@ -274,8 +272,8 @@ decodeContentTypes =
   in
     Json.at ["data"] (Json.list contentType)
 
-fetchContents : String -> Effects Action
-fetchContents filterStr =
+fetchContents : Bool -> String -> Cmd Msg
+fetchContents adminArea filterStr =
   let
     includeHidden = case adminArea of
       True -> "true"
@@ -283,9 +281,7 @@ fetchContents filterStr =
     url = Http.url "/api/contents" [ ("filter", filterStr), ("include_hidden", includeHidden) ]
   in
     Http.get decodeContents url
-      |> Task.toMaybe
-      |> Task.map SetContents
-      |> Effects.task
+      |> Task.perform handleHttpError (\contents -> SetContents contents)
 
 decodeContents : Json.Decoder (List Content)
 decodeContents =
@@ -310,7 +306,7 @@ decodeVote =
     ("id" := Json.int)
     ("voteType" := Json.string)
 
-sendVote : Content -> VoteDirection -> Effects Action
+sendVote : Content -> VoteDirection -> Cmd Msg
 sendVote content voteDirection =
   let
     maybeVote = content.voteForCurrentUser
@@ -336,9 +332,8 @@ sendVote content voteDirection =
       }
   in
     Http.fromJson decodeVoteResult (Http.send Http.defaultSettings request)
-      |> Task.toMaybe
-      |> Task.map ReceivedVoteResult
-      |> Effects.task
+      |> Task.perform handleHttpError (\voteResult -> ReceivedVoteResult voteResult)
+
 
 voteType : Maybe Vote -> VoteDirection -> String
 voteType maybeVote direction =
@@ -362,18 +357,11 @@ decodeVoteResult =
 
 -- APP
 
-app : StartApp.App Model
-app =
-  StartApp.start
+main : Program Config
+main =
+  Html.programWithFlags
     { init = init
     , update = update
     , view = view
-    , inputs = []
+    , subscriptions = \_ -> Sub.none
     }
-
-main : Signal Html
-main = app.html
-
-port tasks : Signal (Task.Task Never ())
-port tasks =
-  app.tasks

@@ -1,0 +1,769 @@
+var _rchampourlier$idea_zone$ContentIndex$decodeVoteResult = A2(
+	_elm_lang$core$Json_Decode$at,
+	_elm_lang$core$Native_List.fromArray(
+		['status']),
+	_elm_lang$core$Json_Decode$string);
+var _rchampourlier$idea_zone$ContentIndex$voteType = F2(
+	function (maybeVote, direction) {
+		var _p0 = {ctor: '_Tuple2', _0: maybeVote, _1: direction};
+		if (_p0._0.ctor === 'Nothing') {
+			if (_p0._1.ctor === 'Up') {
+				return 'for';
+			} else {
+				return 'against';
+			}
+		} else {
+			var _p1 = {ctor: '_Tuple2', _0: _p0._0._0.voteType, _1: direction};
+			_v1_6:
+			do {
+				if (_p1._1.ctor === 'Up') {
+					switch (_p1._0) {
+						case 'for':
+							return 'for';
+						case 'neutral':
+							return 'for';
+						case 'against':
+							return 'neutral';
+						default:
+							break _v1_6;
+					}
+				} else {
+					switch (_p1._0) {
+						case 'for':
+							return 'neutral';
+						case 'neutral':
+							return 'against';
+						case 'against':
+							return 'against';
+						default:
+							break _v1_6;
+					}
+				}
+			} while(false);
+			return 'neutral';
+		}
+	});
+var _rchampourlier$idea_zone$ContentIndex$viewContentOfficialAnswer = function (officialAnswer) {
+	var _p2 = _elm_lang$core$String$isEmpty(officialAnswer);
+	if (_p2 === true) {
+		return A2(
+			_elm_lang$html$Html$em,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html$text('No official answer yet.')
+				]));
+	} else {
+		return A2(
+			_elm_lang$html$Html$div,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html_Attributes$class('official-answer')
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					A2(
+					_elm_lang$html$Html$span,
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html_Attributes$class('official-answer__header')
+						]),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html$text('Official answer:')
+						])),
+					A2(
+					_elm_lang$html$Html$span,
+					_elm_lang$core$Native_List.fromArray(
+						[]),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html$text(officialAnswer)
+						]))
+				]));
+	}
+};
+var _rchampourlier$idea_zone$ContentIndex$viewContentStatus = function (status) {
+	var statusText = function () {
+		var _p3 = status;
+		switch (_p3) {
+			case 'new':
+				return 'new';
+			case 'in_progress':
+				return 'in progress';
+			case 'solved':
+				return 'solved';
+			default:
+				return '';
+		}
+	}();
+	var labelColor = function () {
+		var _p4 = status;
+		switch (_p4) {
+			case 'new':
+				return 'label-danger';
+			case 'in_progress':
+				return 'label-warning';
+			case 'solved':
+				return 'label-success';
+			default:
+				return 'label-default';
+		}
+	}();
+	return A2(
+		_elm_lang$html$Html$span,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class(
+				A2(_elm_lang$core$Basics_ops['++'], 'content__status label ', labelColor))
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(statusText)
+			]));
+};
+var _rchampourlier$idea_zone$ContentIndex$viewContentType = function (contentType) {
+	return A2(
+		_elm_lang$html$Html$span,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('content__type label label-default')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(contentType)
+			]));
+};
+var _rchampourlier$idea_zone$ContentIndex$Config = F2(
+	function (a, b) {
+		return {adminArea: a, contentBasePath: b};
+	});
+var _rchampourlier$idea_zone$ContentIndex$Model = F4(
+	function (a, b, c, d) {
+		return {config: a, contents: b, contentTypes: c, filterStr: d};
+	});
+var _rchampourlier$idea_zone$ContentIndex$Vote = F2(
+	function (a, b) {
+		return {id: a, voteType: b};
+	});
+var _rchampourlier$idea_zone$ContentIndex$decodeVote = A3(
+	_elm_lang$core$Json_Decode$object2,
+	F2(
+		function (id, voteType) {
+			return A2(_rchampourlier$idea_zone$ContentIndex$Vote, id, voteType);
+		}),
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'id', _elm_lang$core$Json_Decode$int),
+	A2(_elm_lang$core$Json_Decode_ops[':='], 'voteType', _elm_lang$core$Json_Decode$string));
+var _rchampourlier$idea_zone$ContentIndex$Content = F8(
+	function (a, b, c, d, e, f, g, h) {
+		return {id: a, label: b, description: c, officialAnswer: d, status: e, contentType: f, voteScore: g, voteForCurrentUser: h};
+	});
+var _rchampourlier$idea_zone$ContentIndex$decodeContents = function () {
+	var content = A9(
+		_elm_lang$core$Json_Decode$object8,
+		F8(
+			function (id, label, desc, oAnswer, status, cType, voteScore, voted) {
+				return A8(_rchampourlier$idea_zone$ContentIndex$Content, id, label, desc, oAnswer, status, cType, voteScore, voted);
+			}),
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'id', _elm_lang$core$Json_Decode$int),
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'label', _elm_lang$core$Json_Decode$string),
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'description', _elm_lang$core$Json_Decode$string),
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'officialAnswer', _elm_lang$core$Json_Decode$string),
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'status', _elm_lang$core$Json_Decode$string),
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'type', _elm_lang$core$Json_Decode$string),
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'voteScore', _elm_lang$core$Json_Decode$int),
+		_elm_lang$core$Json_Decode$maybe(
+			A2(_elm_lang$core$Json_Decode_ops[':='], 'voteForCurrentUser', _rchampourlier$idea_zone$ContentIndex$decodeVote)));
+	return A2(
+		_elm_lang$core$Json_Decode$at,
+		_elm_lang$core$Native_List.fromArray(
+			['data']),
+		_elm_lang$core$Json_Decode$list(content));
+}();
+var _rchampourlier$idea_zone$ContentIndex$ContentType = F3(
+	function (a, b, c) {
+		return {id: a, label: b, active: c};
+	});
+var _rchampourlier$idea_zone$ContentIndex$decodeContentTypes = function () {
+	var contentType = A3(
+		_elm_lang$core$Json_Decode$object2,
+		F2(
+			function (id, label) {
+				return A3(_rchampourlier$idea_zone$ContentIndex$ContentType, id, label, true);
+			}),
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'id', _elm_lang$core$Json_Decode$int),
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'label', _elm_lang$core$Json_Decode$string));
+	return A2(
+		_elm_lang$core$Json_Decode$at,
+		_elm_lang$core$Native_List.fromArray(
+			['data']),
+		_elm_lang$core$Json_Decode$list(contentType));
+}();
+var _rchampourlier$idea_zone$ContentIndex$Down = {ctor: 'Down'};
+var _rchampourlier$idea_zone$ContentIndex$Up = {ctor: 'Up'};
+var _rchampourlier$idea_zone$ContentIndex$HandleError = function (a) {
+	return {ctor: 'HandleError', _0: a};
+};
+var _rchampourlier$idea_zone$ContentIndex$handleHttpError = function (err) {
+	var errorMessage = function () {
+		var _p5 = err;
+		switch (_p5.ctor) {
+			case 'Timeout':
+				return 'Timeout';
+			case 'NetworkError':
+				return 'NetworkError';
+			case 'UnexpectedPayload':
+				return A2(_elm_lang$core$Basics_ops['++'], 'UnexpectedPayload ', _p5._0);
+			default:
+				return A2(
+					_elm_lang$core$Basics_ops['++'],
+					'BadResponse ',
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						_elm_lang$core$Basics$toString(_p5._0),
+						A2(_elm_lang$core$Basics_ops['++'], ' ', _p5._1)));
+		}
+	}();
+	return _rchampourlier$idea_zone$ContentIndex$HandleError(errorMessage);
+};
+var _rchampourlier$idea_zone$ContentIndex$ToggleContentType = function (a) {
+	return {ctor: 'ToggleContentType', _0: a};
+};
+var _rchampourlier$idea_zone$ContentIndex$viewFilterContentTypes = function (model) {
+	var pill = function (contentType) {
+		return A2(
+			_elm_lang$html$Html$li,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					A2(_elm_lang$html$Html_Attributes$attribute, 'role', 'presentation'),
+					_elm_lang$html$Html_Attributes$classList(
+					_elm_lang$core$Native_List.fromArray(
+						[
+							{ctor: '_Tuple2', _0: 'active', _1: contentType.active}
+						])),
+					_elm_lang$html$Html_Events$onClick(
+					_rchampourlier$idea_zone$ContentIndex$ToggleContentType(contentType))
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					A2(
+					_elm_lang$html$Html$a,
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html_Attributes$href('#')
+						]),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html$text(contentType.label)
+						]))
+				]));
+	};
+	var pills = A2(_elm_lang$core$List$map, pill, model.contentTypes);
+	return A2(
+		_elm_lang$html$Html$ul,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('nav nav-pills')
+			]),
+		pills);
+};
+var _rchampourlier$idea_zone$ContentIndex$ReceivedVoteResult = function (a) {
+	return {ctor: 'ReceivedVoteResult', _0: a};
+};
+var _rchampourlier$idea_zone$ContentIndex$sendVote = F2(
+	function (content, voteDirection) {
+		var contentId = _elm_lang$core$Basics$toString(content.id);
+		var maybeVote = content.voteForCurrentUser;
+		var votePath = function () {
+			var _p6 = maybeVote;
+			if (_p6.ctor === 'Nothing') {
+				return A2(
+					_elm_lang$core$Basics_ops['++'],
+					'/api/contents/',
+					A2(_elm_lang$core$Basics_ops['++'], contentId, '/votes'));
+			} else {
+				return A2(
+					_elm_lang$core$Basics_ops['++'],
+					'/api/contents/',
+					A2(
+						_elm_lang$core$Basics_ops['++'],
+						contentId,
+						A2(
+							_elm_lang$core$Basics_ops['++'],
+							'/votes/',
+							_elm_lang$core$Basics$toString(_p6._0.id))));
+			}
+		}();
+		var updateParams = function () {
+			var _p7 = maybeVote;
+			if (_p7.ctor === 'Nothing') {
+				return _elm_lang$core$Native_List.fromArray(
+					[]);
+			} else {
+				return _elm_lang$core$Native_List.fromArray(
+					[
+						{
+						ctor: '_Tuple2',
+						_0: 'id',
+						_1: _elm_lang$core$Basics$toString(_p7._0.id)
+					}
+					]);
+			}
+		}();
+		var params = A2(
+			_elm_lang$core$Basics_ops['++'],
+			_elm_lang$core$Native_List.fromArray(
+				[
+					{
+					ctor: '_Tuple2',
+					_0: 'vote[vote_type]',
+					_1: A2(_rchampourlier$idea_zone$ContentIndex$voteType, maybeVote, voteDirection)
+				},
+					{ctor: '_Tuple2', _0: 'content_id', _1: contentId}
+				]),
+			updateParams);
+		var verb = function () {
+			var _p8 = maybeVote;
+			if (_p8.ctor === 'Nothing') {
+				return 'POST';
+			} else {
+				return 'PUT';
+			}
+		}();
+		var request = {
+			verb: verb,
+			headers: _elm_lang$core$Native_List.fromArray(
+				[]),
+			url: A2(_evancz$elm_http$Http$url, votePath, params),
+			body: _evancz$elm_http$Http$empty
+		};
+		return A3(
+			_elm_lang$core$Task$perform,
+			_rchampourlier$idea_zone$ContentIndex$handleHttpError,
+			function (voteResult) {
+				return _rchampourlier$idea_zone$ContentIndex$ReceivedVoteResult(voteResult);
+			},
+			A2(
+				_evancz$elm_http$Http$fromJson,
+				_rchampourlier$idea_zone$ContentIndex$decodeVoteResult,
+				A2(_evancz$elm_http$Http$send, _evancz$elm_http$Http$defaultSettings, request)));
+	});
+var _rchampourlier$idea_zone$ContentIndex$RequestVote = F2(
+	function (a, b) {
+		return {ctor: 'RequestVote', _0: a, _1: b};
+	});
+var _rchampourlier$idea_zone$ContentIndex$viewContentVoteComponent = function (content) {
+	var voteScore = A2(
+		_elm_lang$html$Html$span,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('content__vote__score')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html$text(
+				_elm_lang$core$Basics$toString(content.voteScore))
+			]));
+	var buttonsDisabled = function () {
+		var _p9 = content.voteForCurrentUser;
+		if (_p9.ctor === 'Nothing') {
+			return {up: false, down: false};
+		} else {
+			var _p10 = _p9._0.voteType;
+			switch (_p10) {
+				case 'for':
+					return {up: true, down: false};
+				case 'against':
+					return {up: false, down: true};
+				default:
+					return {up: false, down: false};
+			}
+		}
+	}();
+	var voteUpButton = A2(
+		_elm_lang$html$Html$span,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$classList(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						{ctor: '_Tuple2', _0: 'disabled', _1: buttonsDisabled.up},
+						{ctor: '_Tuple2', _0: 'btn btn-default content__vote__button', _1: true}
+					])),
+				_elm_lang$html$Html_Events$onClick(
+				A2(_rchampourlier$idea_zone$ContentIndex$RequestVote, content, _rchampourlier$idea_zone$ContentIndex$Up))
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$span,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('glyphicon glyphicon-arrow-up'),
+						A2(_elm_lang$html$Html_Attributes$attribute, 'aria-hidden', 'true')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[]))
+			]));
+	var voteDownButton = A2(
+		_elm_lang$html$Html$span,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$classList(
+				_elm_lang$core$Native_List.fromArray(
+					[
+						{ctor: '_Tuple2', _0: 'disabled', _1: buttonsDisabled.down},
+						{ctor: '_Tuple2', _0: 'btn btn-default content__vote__button', _1: true}
+					])),
+				_elm_lang$html$Html_Events$onClick(
+				A2(_rchampourlier$idea_zone$ContentIndex$RequestVote, content, _rchampourlier$idea_zone$ContentIndex$Down)),
+				_elm_lang$html$Html_Attributes$disabled(buttonsDisabled.down)
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$span,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('glyphicon glyphicon-arrow-down'),
+						A2(_elm_lang$html$Html_Attributes$attribute, 'aria-hidden', 'true')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[]))
+			]));
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('content__vote')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[voteUpButton, voteScore, voteDownButton]));
+};
+var _rchampourlier$idea_zone$ContentIndex$viewContent = F2(
+	function (basePath, content) {
+		var contentPath = A2(
+			_elm_lang$core$Basics_ops['++'],
+			basePath,
+			_elm_lang$core$Basics$toString(content.id));
+		return A2(
+			_elm_lang$html$Html$div,
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_elm_lang$html$Html_Attributes$class('content')
+				]),
+			_elm_lang$core$Native_List.fromArray(
+				[
+					_rchampourlier$idea_zone$ContentIndex$viewContentVoteComponent(content),
+					A3(
+					_elm_lang$html$Html$node,
+					'area',
+					_elm_lang$core$Native_List.fromArray(
+						[
+							_elm_lang$html$Html_Attributes$class('panel panel-default'),
+							_elm_lang$html$Html_Attributes$href(contentPath)
+						]),
+					_elm_lang$core$Native_List.fromArray(
+						[
+							A2(
+							_elm_lang$html$Html$div,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html_Attributes$class('panel-heading')
+								]),
+							_elm_lang$core$Native_List.fromArray(
+								[
+									A2(
+									_elm_lang$html$Html$h3,
+									_elm_lang$core$Native_List.fromArray(
+										[
+											_elm_lang$html$Html_Attributes$class('panel-title')
+										]),
+									_elm_lang$core$Native_List.fromArray(
+										[
+											_elm_lang$html$Html$text(content.label)
+										])),
+									_rchampourlier$idea_zone$ContentIndex$viewContentType(content.contentType),
+									_rchampourlier$idea_zone$ContentIndex$viewContentStatus(content.status)
+								])),
+							A2(
+							_elm_lang$html$Html$div,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html_Attributes$class('panel-body')
+								]),
+							_elm_lang$core$Native_List.fromArray(
+								[
+									A2(
+									_elm_lang$html$Html$div,
+									_elm_lang$core$Native_List.fromArray(
+										[]),
+									_elm_lang$core$Native_List.fromArray(
+										[
+											_elm_lang$html$Html$text(content.description)
+										]))
+								])),
+							A2(
+							_elm_lang$html$Html$div,
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_elm_lang$html$Html_Attributes$class('panel-footer')
+								]),
+							_elm_lang$core$Native_List.fromArray(
+								[
+									_rchampourlier$idea_zone$ContentIndex$viewContentOfficialAnswer(content.officialAnswer)
+								]))
+						]))
+				]));
+	});
+var _rchampourlier$idea_zone$ContentIndex$UpdateFilter = function (a) {
+	return {ctor: 'UpdateFilter', _0: a};
+};
+var _rchampourlier$idea_zone$ContentIndex$viewFilterText = function (model) {
+	return A2(
+		_elm_lang$html$Html$form,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('form-inline')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$class('form-group')
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						A2(
+						_elm_lang$html$Html$label,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Attributes$for('filterInput')
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html$text('Search for something')
+							])),
+						A2(
+						_elm_lang$html$Html$input,
+						_elm_lang$core$Native_List.fromArray(
+							[
+								_elm_lang$html$Html_Events$onInput(_rchampourlier$idea_zone$ContentIndex$UpdateFilter),
+								_elm_lang$html$Html_Attributes$type$('text'),
+								_elm_lang$html$Html_Attributes$class('form-control'),
+								_elm_lang$html$Html_Attributes$id('filterInput'),
+								_elm_lang$html$Html_Attributes$size(50)
+							]),
+						_elm_lang$core$Native_List.fromArray(
+							[]))
+					])),
+				A2(
+				_elm_lang$html$Html$a,
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html_Attributes$type$('submit'),
+						_elm_lang$html$Html_Attributes$class('btn btn-default'),
+						_elm_lang$html$Html_Attributes$href(
+						A2(_elm_lang$core$Basics_ops['++'], '/contents/new?label=', model.filterStr))
+					]),
+				_elm_lang$core$Native_List.fromArray(
+					[
+						_elm_lang$html$Html$text('Create a new one')
+					]))
+			]));
+};
+var _rchampourlier$idea_zone$ContentIndex$viewFilter = function (model) {
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_elm_lang$html$Html_Attributes$class('filter-panel bs-callout')
+			]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_rchampourlier$idea_zone$ContentIndex$viewFilterText(model),
+				_rchampourlier$idea_zone$ContentIndex$viewFilterContentTypes(model)
+			]));
+};
+var _rchampourlier$idea_zone$ContentIndex$view = function (model) {
+	var withActiveContentType = function (content) {
+		var contentType = _elm_lang$core$List$head(
+			A2(
+				_elm_lang$core$List$filter,
+				function (ct) {
+					return _elm_lang$core$Native_Utils.eq(ct.label, content.contentType);
+				},
+				model.contentTypes));
+		var _p11 = contentType;
+		if (_p11.ctor === 'Just') {
+			return _p11._0.active;
+		} else {
+			return true;
+		}
+	};
+	var visibleContents = A2(_elm_lang$core$List$filter, withActiveContentType, model.contents);
+	return A2(
+		_elm_lang$html$Html$div,
+		_elm_lang$core$Native_List.fromArray(
+			[]),
+		_elm_lang$core$Native_List.fromArray(
+			[
+				_rchampourlier$idea_zone$ContentIndex$viewFilter(model),
+				A2(
+				_elm_lang$html$Html$div,
+				_elm_lang$core$Native_List.fromArray(
+					[]),
+				A2(
+					_elm_lang$core$List$map,
+					_rchampourlier$idea_zone$ContentIndex$viewContent(model.config.contentBasePath),
+					visibleContents))
+			]));
+};
+var _rchampourlier$idea_zone$ContentIndex$SetContentTypes = function (a) {
+	return {ctor: 'SetContentTypes', _0: a};
+};
+var _rchampourlier$idea_zone$ContentIndex$fetchContentTypes = A3(
+	_elm_lang$core$Task$perform,
+	_rchampourlier$idea_zone$ContentIndex$handleHttpError,
+	function (contentTypes) {
+		return _rchampourlier$idea_zone$ContentIndex$SetContentTypes(contentTypes);
+	},
+	A2(_evancz$elm_http$Http$get, _rchampourlier$idea_zone$ContentIndex$decodeContentTypes, '/api/content_types'));
+var _rchampourlier$idea_zone$ContentIndex$SetContents = function (a) {
+	return {ctor: 'SetContents', _0: a};
+};
+var _rchampourlier$idea_zone$ContentIndex$fetchContents = F2(
+	function (adminArea, filterStr) {
+		var includeHidden = function () {
+			var _p12 = adminArea;
+			if (_p12 === true) {
+				return 'true';
+			} else {
+				return 'false';
+			}
+		}();
+		var url = A2(
+			_evancz$elm_http$Http$url,
+			'/api/contents',
+			_elm_lang$core$Native_List.fromArray(
+				[
+					{ctor: '_Tuple2', _0: 'filter', _1: filterStr},
+					{ctor: '_Tuple2', _0: 'include_hidden', _1: includeHidden}
+				]));
+		return A3(
+			_elm_lang$core$Task$perform,
+			_rchampourlier$idea_zone$ContentIndex$handleHttpError,
+			function (contents) {
+				return _rchampourlier$idea_zone$ContentIndex$SetContents(contents);
+			},
+			A2(_evancz$elm_http$Http$get, _rchampourlier$idea_zone$ContentIndex$decodeContents, url));
+	});
+var _rchampourlier$idea_zone$ContentIndex$init = function (config) {
+	var actions = _elm_lang$core$Platform_Cmd$batch(
+		_elm_lang$core$Native_List.fromArray(
+			[
+				A2(_rchampourlier$idea_zone$ContentIndex$fetchContents, config.adminArea, ''),
+				_rchampourlier$idea_zone$ContentIndex$fetchContentTypes
+			]));
+	return {
+		ctor: '_Tuple2',
+		_0: A4(
+			_rchampourlier$idea_zone$ContentIndex$Model,
+			config,
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			_elm_lang$core$Native_List.fromArray(
+				[]),
+			''),
+		_1: actions
+	};
+};
+var _rchampourlier$idea_zone$ContentIndex$update = F2(
+	function (action, model) {
+		var _p13 = action;
+		switch (_p13.ctor) {
+			case 'SetContents':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{contents: _p13._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'SetContentTypes':
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$Native_Utils.update(
+						model,
+						{contentTypes: _p13._0}),
+					_1: _elm_lang$core$Platform_Cmd$none
+				};
+			case 'UpdateFilter':
+				var _p14 = _p13._0;
+				var newModel = _elm_lang$core$Native_Utils.update(
+					model,
+					{filterStr: _p14});
+				return {
+					ctor: '_Tuple2',
+					_0: newModel,
+					_1: A2(_rchampourlier$idea_zone$ContentIndex$fetchContents, model.config.adminArea, _p14)
+				};
+			case 'RequestVote':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: A2(_rchampourlier$idea_zone$ContentIndex$sendVote, _p13._0, _p13._1)
+				};
+			case 'ReceivedVoteResult':
+				return {
+					ctor: '_Tuple2',
+					_0: model,
+					_1: A2(_rchampourlier$idea_zone$ContentIndex$fetchContents, model.config.adminArea, model.filterStr)
+				};
+			case 'ToggleContentType':
+				var updateContentType = function (ct) {
+					return _elm_lang$core$Native_Utils.eq(ct.id, _p13._0.id) ? _elm_lang$core$Native_Utils.update(
+						ct,
+						{
+							active: _elm_lang$core$Basics$not(ct.active)
+						}) : ct;
+				};
+				var newModel = _elm_lang$core$Native_Utils.update(
+					model,
+					{
+						contentTypes: A2(_elm_lang$core$List$map, updateContentType, model.contentTypes)
+					});
+				return {ctor: '_Tuple2', _0: newModel, _1: _elm_lang$core$Platform_Cmd$none};
+			default:
+				return A2(
+					_elm_lang$core$Debug$log,
+					_p13._0,
+					{ctor: '_Tuple2', _0: model, _1: _elm_lang$core$Platform_Cmd$none});
+		}
+	});
+var _rchampourlier$idea_zone$ContentIndex$main = {
+	main: _elm_lang$html$Html_App$programWithFlags(
+		{
+			init: _rchampourlier$idea_zone$ContentIndex$init,
+			update: _rchampourlier$idea_zone$ContentIndex$update,
+			view: _rchampourlier$idea_zone$ContentIndex$view,
+			subscriptions: function (_p15) {
+				return _elm_lang$core$Platform_Sub$none;
+			}
+		}),
+	flags: A2(
+		_elm_lang$core$Json_Decode$andThen,
+		A2(_elm_lang$core$Json_Decode_ops[':='], 'adminArea', _elm_lang$core$Json_Decode$bool),
+		function (adminArea) {
+			return A2(
+				_elm_lang$core$Json_Decode$andThen,
+				A2(_elm_lang$core$Json_Decode_ops[':='], 'contentBasePath', _elm_lang$core$Json_Decode$string),
+				function (contentBasePath) {
+					return _elm_lang$core$Json_Decode$succeed(
+						{adminArea: adminArea, contentBasePath: contentBasePath});
+				});
+		})
+};

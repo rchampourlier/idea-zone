@@ -1,0 +1,4 @@
+var _rchampourlier$idea_zone$AppConfig$Config = F2(
+	function (a, b) {
+		return {adminArea: a, contentBasePath: b};
+	});

@@ -26,9 +26,9 @@ import "bootstrap-sass"
 // We're using ports to provide the Elm app with
 // the path to show contents (/contents/ and /admin/contents
 // when in the admin area).
-const ports = {
+const elmAppConfig = {
   contentBasePath: document.location.pathname + "/",
   adminArea: document.location.pathname.includes("admin/")
 }
-const elmDiv = document.querySelector('#elm-container');
-const elmApp = Elm.embed(Elm.ContentIndex, elmDiv, ports);
+var node = document.getElementById('elm-container');
+var app = Elm.ContentIndex.embed(node, elmAppConfig);
