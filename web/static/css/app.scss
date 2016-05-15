@@ -1,0 +1,136 @@
+/* Bootstrap imports */
+$icon-font-path: "/fonts/"; /* use fonts from priv/static/fonts/ */
+@import "bootstrap"; /* imports node_modules/bootstrap-sass/assets/stylesheets/_bootstrap.scss */
+
+/* Phoenix setup */
+
+/* Space out content a bit */
+body, form, ul, table {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+/* Phoenix flash messages */
+.alert:empty { display: none; }
+
+/* Phoenix inline forms in links and buttons */
+form.link, form.button {
+  display: inline;
+}
+
+/* Custom */
+
+/* Content.index - Search panel */
+
+.bs-callout {
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid #eee;
+  border-left-width: 5px;
+  border-radius: 3px;
+}
+
+.bs-callout h4 {
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+.bs-callout form {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.form-group, .form-group label {
+  margin-right: 5px;
+}
+
+/* Content.index - Content views */
+
+.panel-heading {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+}
+
+.panel-heading h3 {
+  flex-grow: 1;
+}
+
+.content {
+  display: flex;
+}
+
+.content .panel, .content__details {
+  width: 100%;
+}
+
+.content__comments .panel-body {
+  padding-bottom: 0;
+}
+
+.content__comments .table {
+  margin-top: 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.content__comments .table tr td {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.content__comments .table tr td .date {
+  margin-left: 1em;
+  font-style: italic;
+  font-size: 0.9em;
+  color: #BBB;
+}
+
+.content__comments form {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.content__vote {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-right: 10px;
+  margin-bottom: 20px; /* Same as .panel */
+}
+
+.content__vote form {
+  margin: 0;
+}
+
+.content__vote .form-group {
+  margin: 0;
+}
+
+.content__vote__score {
+  font-size: 3em;
+}
+
+.content__status { /* Similar to .content__type */
+  font-size: 1.2em;
+  font-weight: normal;
+  text-transform: uppercase;
+  padding-bottom: .2em; /* Overrides .label default (.3em) */
+}
+
+.content__type { /* Similar to .content__status */
+  font-size: 1.2em;
+  font-weight: normal;
+  text-transform: uppercase;
+  padding-bottom: .2em; /* Overrides .label default (.3em) */
+  background-color: #BBB;
+  margin-right: .5em;
+}
+
+.official-answer__header {
+  font-weight: bold;
+  padding-right: 5px;
+}
+
+.content__actions .panel-body {
+  padding-bottom: 0;
+}
