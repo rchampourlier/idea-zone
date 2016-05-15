@@ -22,17 +22,17 @@ Repo.insert! %ContentType{label: "Problem"}
 
 Repo.insert! %Content{
   label: "A simple question",
-  description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etsi qui potest intellegi aut cogitari esse aliquod animal, quod se oderit? Habent enim et bene longam et satis litigiosam disputationem. Quod idem cum vestri faciant, non satis magnam tribuunt inventoribus gratiam. Nihil ad rem! Ne sit sane; Non quam nostram quidem, inquit Pomponius iocans; Qui-vere falsone, quaerere mittimus-dicitur oculis se privasse; Duo Reges: constructio interrete.",
+  description: "What about IdeaZone? Is this an usefool tool? Do you find it sufficient for your needs? What could be improved? Do not hesitate to make it better by adding comments and vote for this question!",
   language: "en",
   status: "in_progress",
   type_id: 1
 }
 Repo.insert! %Comment{
-  text: "A comment to say this is an excellent question. Or idea.",
+  text: "I do not know if IdeaZone is a great idea, but this question is!",
   content_id: 1
 }
 Repo.insert! %Comment{
-  text: "Another comment. So short :(",
+  text: "That's an useless comment.",
   content_id: 1
 }
 Repo.insert! %Vote{
@@ -52,19 +52,19 @@ Repo.insert! %Vote{
 }
 
 Repo.insert! %Content{
-  label: "An idea!",
-  description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etsi qui potest intellegi aut cogitari esse aliquod animal, quod se oderit? Habent enim et bene longam et satis litigiosam disputationem. Quod idem cum vestri faciant, non satis magnam tribuunt inventoribus gratiam. Nihil ad rem! Ne sit sane; Non quam nostram quidem, inquit Pomponius iocans; Qui-vere falsone, quaerere mittimus-dicitur oculis se privasse; Duo Reges: constructio interrete.",
-  official_answer: "Official answer from officials: \"There is no problem!\"",
-  language: "en",
+  label: "Une idée !",
+  description: "Multilingue ! IdeaZone devrait être traduit dans d'autres langues et devrait pouvoir gérer du contenu dans d'autres langues également. La recherche plein texte devrait également gérer correctement les langues, car elle ne peut pas être efficace sans cela.",
+  official_answer: "IdeaZone est pour l'instant en anglais dans l'interface et sait gérer du contenu en Français pour ce qui est de la recherche plein texte. Des textes en anglais pourraient également être gérer, mais il manque à ce jour la fonctionnalité pour permettre de détecter (ou d'indiquer) que le texte n'est pas en Français. Tout nouveau contenu sera considéré comme étant en Français pour le moment (cf. attribut \"language\" du modèle \"Content\").",
+  language: "fr",
   status: "solved",
   type_id: 2
 }
 Repo.insert! %Comment{
-  text: "I don't like that either",
+  text: "C'est dommage !",
   content_id: 2
 }
 Repo.insert! %Comment{
-  text: "I support this problem.",
+  text: "Il faudrait un système de détection de la langue du texte pour améliorer la recherche !",
   content_id: 2
 }
 Repo.insert! %Vote{
@@ -75,7 +75,7 @@ Repo.insert! %Vote{
 
 Repo.insert! %Content{
   label: "A problematic problem",
-  description: "Lorem ipsum dolor sit amet interrete.",
+  description: "This is a problem. A big one.",
   language: "en",
   status: "new",
   type_id: 3
