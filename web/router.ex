@@ -61,5 +61,7 @@ defmodule IdeaZone.Router do
     resources "/contents", API.ContentController, only: [:index] do
       resources "/votes", API.VoteController, only: [:create, :update]
     end
+
+    resources "/content_types", API.ContentTypeController, only: [:index]
   end
 end

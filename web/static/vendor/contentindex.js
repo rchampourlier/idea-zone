@@ -11066,6 +11066,18 @@ Elm.ContentIndex.make = function (_elm) {
    var viewContentType = function (contentType) {
       return A2($Html.span,_U.list([$Html$Attributes.$class("content__type label label-default")]),_U.list([$Html.text(contentType)]));
    };
+   var ToggleContentType = function (a) {    return {ctor: "ToggleContentType",_0: a};};
+   var viewFilterContentTypes = F2(function (address,model) {
+      var pill = function (contentType) {
+         return A2($Html.li,
+         _U.list([A2($Html$Attributes.attribute,"role","presentation")
+                 ,$Html$Attributes.classList(_U.list([{ctor: "_Tuple2",_0: "active",_1: contentType.active}]))
+                 ,A2($Html$Events.onClick,address,ToggleContentType(contentType))]),
+         _U.list([A2($Html.a,_U.list([$Html$Attributes.href("#")]),_U.list([$Html.text(contentType.label)]))]));
+      };
+      var pills = A2($List.map,pill,model.contentTypes);
+      return A2($Html.ul,_U.list([$Html$Attributes.$class("nav nav-pills")]),pills);
+   });
    var ReceivedVoteResult = function (a) {    return {ctor: "ReceivedVoteResult",_0: a};};
    var sendVote = F2(function (content,voteDirection) {
       var contentId = $Basics.toString(content.id);
@@ -11095,7 +11107,7 @@ Elm.ContentIndex.make = function (_elm) {
    });
    var RequestVote = F2(function (a,b) {    return {ctor: "RequestVote",_0: a,_1: b};});
    var UpdateFilter = function (a) {    return {ctor: "UpdateFilter",_0: a};};
-   var viewSearchForm = F2(function (address,model) {
+   var viewFilterText = F2(function (address,model) {
       return A2($Html.form,
       _U.list([$Html$Attributes.$class("form-inline")]),
       _U.list([A2($Html.div,
@@ -11111,9 +11123,15 @@ Elm.ContentIndex.make = function (_elm) {
               ,A2($Html.a,
               _U.list([$Html$Attributes.type$("submit")
                       ,$Html$Attributes.$class("btn btn-default")
-                      ,$Html$Attributes.href(A2($Basics._op["++"],"/contents/new?label=",model.filter))]),
+                      ,$Html$Attributes.href(A2($Basics._op["++"],"/contents/new?label=",model.filterStr))]),
               _U.list([$Html.text("Create a new one")]))]));
    });
+   var viewFilter = F2(function (address,model) {
+      return A2($Html.div,
+      _U.list([$Html$Attributes.$class("filter-panel bs-callout")]),
+      _U.list([A2(viewFilterText,address,model),A2(viewFilterContentTypes,address,model)]));
+   });
+   var SetContentTypes = function (a) {    return {ctor: "SetContentTypes",_0: a};};
    var SetContents = function (a) {    return {ctor: "SetContents",_0: a};};
    var Down = {ctor: "Down"};
    var Up = {ctor: "Up"};
@@ -11144,6 +11162,18 @@ Elm.ContentIndex.make = function (_elm) {
       _U.list([$Html.text("⬇")]));
       return A2($Html.div,_U.list([$Html$Attributes.$class("content__vote")]),_U.list([voteUpButton,voteScore,voteDownButton]));
    });
+   var ContentType = F3(function (a,b,c) {    return {id: a,label: b,active: c};});
+   var decodeContentTypes = function () {
+      var contentType = A3($Json$Decode.object2,
+      F2(function (id,label) {    return A3(ContentType,id,label,true);}),
+      A2($Json$Decode._op[":="],"id",$Json$Decode.$int),
+      A2($Json$Decode._op[":="],"label",$Json$Decode.string));
+      return A2($Json$Decode.at,_U.list(["data"]),$Json$Decode.list(contentType));
+   }();
+   var fetchContentTypes = function () {
+      var url = A2($Http.url,"/api/content_types",_U.list([]));
+      return $Effects.task(A2($Task.map,SetContentTypes,$Task.toMaybe(A2($Http.get,decodeContentTypes,url))));
+   }();
    var Content = F8(function (a,b,c,d,e,f,g,h) {
       return {id: a,label: b,description: c,officialAnswer: d,status: e,contentType: f,voteScore: g,voteForCurrentUser: h};
    });
@@ -11165,7 +11195,7 @@ Elm.ContentIndex.make = function (_elm) {
       $Json$Decode.maybe(A2($Json$Decode._op[":="],"voteForCurrentUser",decodeVote)));
       return A2($Json$Decode.at,_U.list(["data"]),$Json$Decode.list(content));
    }();
-   var Model = F2(function (a,b) {    return {contents: a,filter: b};});
+   var Model = F3(function (a,b,c) {    return {contents: a,contentTypes: b,filterStr: c};});
    var contentBasePath = Elm.Native.Port.make(_elm).inbound("contentBasePath",
    "String",
    function (v) {
@@ -11190,10 +11220,17 @@ Elm.ContentIndex.make = function (_elm) {
                       ,A2($Html.div,_U.list([$Html$Attributes.$class("panel-footer")]),_U.list([viewContentOfficialAnswer(content.officialAnswer)]))]))]));
    });
    var view = F2(function (address,model) {
-      return A2($Html.div,
-      _U.list([]),
-      _U.list([A2($Html.div,_U.list([$Html$Attributes.$class("filter-panel bs-callout")]),_U.list([A2(viewSearchForm,address,model)]))
-              ,A2($Html.div,_U.list([]),A2($List.map,viewContent(address),model.contents))]));
+      var withActiveContentType = function (content) {
+         var contentType = $List.head(A2($List.filter,function (ct) {    return _U.eq(ct.label,content.contentType);},model.contentTypes));
+         var _p10 = contentType;
+         if (_p10.ctor === "Just") {
+               return _p10._0.active;
+            } else {
+               return true;
+            }
+      };
+      var visibleContents = A2($List.filter,withActiveContentType,model.contents);
+      return A2($Html.div,_U.list([]),_U.list([A2(viewFilter,address,model),A2($Html.div,_U.list([]),A2($List.map,viewContent(address),visibleContents))]));
    });
    var adminArea = Elm.Native.Port.make(_elm).inbound("adminArea",
    "Bool",
@@ -11201,27 +11238,36 @@ Elm.ContentIndex.make = function (_elm) {
       return typeof v === "boolean" ? v : _U.badPort("a boolean (true or false)",v);
    });
    var fetchContents = function (filterStr) {
-      var includeHidden = function () {    var _p10 = adminArea;if (_p10 === true) {    return "true";} else {    return "false";}}();
+      var includeHidden = function () {    var _p11 = adminArea;if (_p11 === true) {    return "true";} else {    return "false";}}();
       var url = A2($Http.url,"/api/contents",_U.list([{ctor: "_Tuple2",_0: "filter",_1: filterStr},{ctor: "_Tuple2",_0: "include_hidden",_1: includeHidden}]));
       return $Effects.task(A2($Task.map,SetContents,$Task.toMaybe(A2($Http.get,decodeContents,url))));
    };
-   var init = {ctor: "_Tuple2",_0: A2(Model,_U.list([]),""),_1: fetchContents("")};
+   var init = function () {
+      var actions = $Effects.batch(_U.list([fetchContents(""),fetchContentTypes]));
+      return {ctor: "_Tuple2",_0: A3(Model,_U.list([]),_U.list([]),""),_1: actions};
+   }();
    var update = F2(function (action,model) {
-      var _p11 = action;
-      switch (_p11.ctor)
-      {case "SetContents": var newContents = A2($Maybe.withDefault,model.contents,_p11._0);
+      var _p12 = action;
+      switch (_p12.ctor)
+      {case "SetContents": var newContents = A2($Maybe.withDefault,model.contents,_p12._0);
            var newModel = _U.update(model,{contents: newContents});
            return {ctor: "_Tuple2",_0: newModel,_1: $Effects.none};
-         case "UpdateFilter": var _p12 = _p11._0;
-           var newModel = _U.update(model,{filter: _p12});
-           return {ctor: "_Tuple2",_0: newModel,_1: fetchContents(_p12)};
-         case "RequestVote": return {ctor: "_Tuple2",_0: model,_1: A2(sendVote,_p11._0,_p11._1)};
-         default: var _p13 = _p11._0;
-           if (_p13.ctor === "Just" && _p13._0 === "ok") {
-                 return {ctor: "_Tuple2",_0: model,_1: fetchContents(model.filter)};
+         case "SetContentTypes": var newContentTypes = A2($Maybe.withDefault,model.contentTypes,_p12._0);
+           var newModel = _U.update(model,{contentTypes: newContentTypes});
+           return {ctor: "_Tuple2",_0: newModel,_1: $Effects.none};
+         case "UpdateFilter": var _p13 = _p12._0;
+           var newModel = _U.update(model,{filterStr: _p13});
+           return {ctor: "_Tuple2",_0: newModel,_1: fetchContents(_p13)};
+         case "RequestVote": return {ctor: "_Tuple2",_0: model,_1: A2(sendVote,_p12._0,_p12._1)};
+         case "ReceivedVoteResult": var _p14 = _p12._0;
+           if (_p14.ctor === "Just" && _p14._0 === "ok") {
+                 return {ctor: "_Tuple2",_0: model,_1: fetchContents(model.filterStr)};
               } else {
                  return {ctor: "_Tuple2",_0: model,_1: $Effects.none};
-              }}
+              }
+         default: var updateContentType = function (ct) {    return _U.eq(ct.id,_p12._0.id) ? _U.update(ct,{active: $Basics.not(ct.active)}) : ct;};
+           var newModel = _U.update(model,{contentTypes: A2($List.map,updateContentType,model.contentTypes)});
+           return {ctor: "_Tuple2",_0: newModel,_1: $Effects.none};}
    });
    var app = $StartApp.start({init: init,update: update,view: view,inputs: _U.list([])});
    var main = app.html;
@@ -11230,13 +11276,16 @@ Elm.ContentIndex.make = function (_elm) {
                                      ,Model: Model
                                      ,Vote: Vote
                                      ,Content: Content
+                                     ,ContentType: ContentType
                                      ,init: init
                                      ,Up: Up
                                      ,Down: Down
                                      ,SetContents: SetContents
+                                     ,SetContentTypes: SetContentTypes
                                      ,UpdateFilter: UpdateFilter
                                      ,RequestVote: RequestVote
                                      ,ReceivedVoteResult: ReceivedVoteResult
+                                     ,ToggleContentType: ToggleContentType
                                      ,update: update
                                      ,view: view
                                      ,viewContent: viewContent
@@ -11244,7 +11293,11 @@ Elm.ContentIndex.make = function (_elm) {
                                      ,viewContentType: viewContentType
                                      ,viewContentStatus: viewContentStatus
                                      ,viewContentOfficialAnswer: viewContentOfficialAnswer
-                                     ,viewSearchForm: viewSearchForm
+                                     ,viewFilter: viewFilter
+                                     ,viewFilterText: viewFilterText
+                                     ,viewFilterContentTypes: viewFilterContentTypes
+                                     ,fetchContentTypes: fetchContentTypes
+                                     ,decodeContentTypes: decodeContentTypes
                                      ,fetchContents: fetchContents
                                      ,decodeContents: decodeContents
                                      ,decodeVote: decodeVote

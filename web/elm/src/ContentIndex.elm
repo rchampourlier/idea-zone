@@ -2,7 +2,7 @@ module ContentIndex where
 
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, classList, disabled, for, href, key, id, size, style, type')
+import Html.Attributes exposing (attribute, class, classList, disabled, for, href, key, id, size, style, type')
 import Html.Events exposing (..)
 import Http
 import Json.Decode exposing ((:=))
@@ -19,7 +19,8 @@ port contentBasePath : String
 
 type alias Model =
   { contents : List Content
-  , filter : String
+  , contentTypes : List ContentType
+  , filterStr : String
   }
 type alias Vote =
   { id : Int
@@ -35,10 +36,21 @@ type alias Content =
   , voteScore : Int
   , voteForCurrentUser : Maybe Vote
   }
+type alias ContentType =
+  { id : Int
+  , label : String
+  , active : Bool
+  }
 
 init : (Model, Effects Action)
 init =
-  ( Model [] "", fetchContents "" )
+  let
+    actions = Effects.batch
+      [ fetchContents ""
+      , fetchContentTypes
+      ]
+  in
+    ( Model [] [] "", actions )
 
 
 -- UPDATE
@@ -46,9 +58,11 @@ init =
 type VoteDirection = Up | Down
 type Action
   = SetContents (Maybe (List Content))
+  | SetContentTypes (Maybe (List ContentType))
   | UpdateFilter String
   | RequestVote Content VoteDirection
   | ReceivedVoteResult (Maybe String)
+  | ToggleContentType ContentType
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
@@ -60,11 +74,18 @@ update action model =
       in
         ( newModel, Effects.none )
 
-    UpdateFilter filterStr ->
+    SetContentTypes contentTypes ->
       let
-        newModel = { model | filter = filterStr }
+        newContentTypes = Maybe.withDefault model.contentTypes contentTypes
+        newModel = { model | contentTypes = newContentTypes }
       in
-        ( newModel, fetchContents filterStr )
+        ( newModel, Effects.none )
+
+    UpdateFilter inputFilterStr ->
+      let
+        newModel = { model | filterStr = inputFilterStr }
+      in
+        ( newModel, fetchContents inputFilterStr )
 
     RequestVote content voteDirection ->
       ( model, sendVote content voteDirection )
@@ -72,16 +93,35 @@ update action model =
     ReceivedVoteResult maybeVoteResult ->
       case maybeVoteResult of
         Just "ok" ->
-          ( model, fetchContents model.filter )
+          ( model, fetchContents model.filterStr )
         _ ->
           ( model, Effects.none )
 
+    ToggleContentType contentType ->
+      let
+        updateContentType ct =
+          if ct.id == contentType.id
+            then { ct | active = not ct.active }
+            else ct
+        newModel = { model | contentTypes = List.map updateContentType model.contentTypes }
+      in
+        ( newModel, Effects.none )
+
 view : Signal.Address Action -> Model -> Html
 view address model =
-  div []
-    [ div [ class "filter-panel bs-callout" ] [ viewSearchForm address model ]
-    , div [] (List.map (viewContent address) model.contents)
-    ]
+  let
+    withActiveContentType content =
+      let contentType = List.filter (\ct -> ct.label == content.contentType) model.contentTypes |> List.head
+      in
+        case contentType of
+          Just matchingContentType -> matchingContentType.active
+          Nothing -> True
+    visibleContents = List.filter withActiveContentType model.contents
+  in
+    div []
+      [ viewFilter address model
+      , div [] (List.map (viewContent address) visibleContents)
+      ]
 
 viewContent : Signal.Address Action -> Content -> Html
 viewContent address content =
@@ -170,8 +210,15 @@ viewContentOfficialAnswer officialAnswer =
         , span [] [ text officialAnswer ]
         ]
 
-viewSearchForm : Signal.Address Action -> Model -> Html
-viewSearchForm address model =
+viewFilter : Signal.Address Action -> Model -> Html
+viewFilter address model =
+  div [ class "filter-panel bs-callout" ]
+    [ viewFilterText address model
+    , viewFilterContentTypes address model
+    ]
+
+viewFilterText : Signal.Address Action -> Model -> Html
+viewFilterText address model =
   form [ class "form-inline" ]
     [ div [ class "form-group" ]
       [ label [ for "filterInput" ] [ text "Search for something" ]
@@ -185,13 +232,47 @@ viewSearchForm address model =
       ]
     , a
       [ type' "submit", class "btn btn-default"
-      , href ("/contents/new?label=" ++ model.filter)
+      , href ("/contents/new?label=" ++ model.filterStr)
       ]
       [ text "Create a new one" ]
-  ]
+    ]
+
+viewFilterContentTypes : Signal.Address Action -> Model -> Html
+viewFilterContentTypes address model =
+  let
+    pill contentType =
+      li
+        [ attribute "role" "presentation"
+        , classList [ ("active", contentType.active) ]
+        , onClick address (ToggleContentType contentType)
+        ]
+        [ a [ href "#" ] [ text contentType.label ] ]
+    pills = List.map pill model.contentTypes
+  in
+    ul [ class "nav nav-pills" ] pills
 
 
 -- EFFECTS
+
+fetchContentTypes : Effects Action
+fetchContentTypes =
+  let
+    url = Http.url "/api/content_types" []
+  in
+    Http.get decodeContentTypes url
+      |> Task.toMaybe
+      |> Task.map SetContentTypes
+      |> Effects.task
+
+decodeContentTypes : Json.Decoder (List ContentType)
+decodeContentTypes =
+  let
+    contentType = Json.object2
+      (\id label -> (ContentType id label True))
+      ("id" := Json.int)
+      ("label" := Json.string)
+  in
+    Json.at ["data"] (Json.list contentType)
 
 fetchContents : String -> Effects Action
 fetchContents filterStr =
