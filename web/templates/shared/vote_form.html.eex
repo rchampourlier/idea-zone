@@ -2,11 +2,13 @@
   <%= hidden_input f, :vote_type, value: @vote_type %>
 
   <div class="form-group">
-    <%=
-      classItems = ~w(btn btn-default)
-      if @enabled == false do classItems = ["disabled" | classItems] end
-      classStr = classItems |> Enum.join(" ")
-      submit @label, class: classStr
+    <%
+      class_items = ~w(btn btn-default)
+      if @enabled == false do class_items = ["disabled" | class_items] end
+      class_str = class_items |> Enum.join(" ")
     %>
+    <button type="submit" class="<%= class_str %>">
+      <i class="<%= @icon_class %>"></i>
+    </button>
   </div>
 <% end %>

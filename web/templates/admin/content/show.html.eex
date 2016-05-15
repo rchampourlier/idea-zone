@@ -6,7 +6,7 @@
       action: @vote_action,
       vote_type: @vote_settings.up.type,
       enabled: @vote_settings.up.enabled,
-      label: "⬆"
+      icon_class: "glyphicon glyphicon-arrow-up"
     %>
     <span class="content__vote__score"><%= @content.vote_score %></span>
     <%= render IdeaZone.SharedView, "vote_form.html",
@@ -14,7 +14,7 @@
       action: @vote_action,
       vote_type: @vote_settings.down.type,
       enabled: @vote_settings.down.enabled,
-      label: "⬇"
+      icon_class: "glyphicon glyphicon-arrow-down"
     %>
   </div>
   <div class="content__details">
