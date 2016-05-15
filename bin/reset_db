@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+mix ecto.rollback -n 5
+mix ecto.migrate
+mix run priv/repo/seeds.exs

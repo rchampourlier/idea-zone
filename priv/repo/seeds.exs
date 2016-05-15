@@ -52,7 +52,7 @@ Repo.insert! %Vote{
 }
 
 Repo.insert! %Content{
-  label: "A problem",
+  label: "An idea!",
   description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etsi qui potest intellegi aut cogitari esse aliquod animal, quod se oderit? Habent enim et bene longam et satis litigiosam disputationem. Quod idem cum vestri faciant, non satis magnam tribuunt inventoribus gratiam. Nihil ad rem! Ne sit sane; Non quam nostram quidem, inquit Pomponius iocans; Qui-vere falsone, quaerere mittimus-dicitur oculis se privasse; Duo Reges: constructio interrete.",
   official_answer: "Official answer from officials: \"There is no problem!\"",
   language: "en",
@@ -71,4 +71,12 @@ Repo.insert! %Vote{
   user_session_token: "0123456789",
   content_id: 2,
   vote_type: "for"
+}
+
+Repo.insert! %Content{
+  label: "A problematic problem",
+  description: "Lorem ipsum dolor sit amet interrete.",
+  language: "en",
+  status: "new",
+  type_id: 3
 }
