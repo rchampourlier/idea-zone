@@ -6,11 +6,32 @@ IdeaZone is a simple webapp that enables a community to share and vote on ideas,
 
 ### In development
 
-To start your Phoenix app:
+#### Prerequisites
 
-  1. Install dependencies with `mix deps.get`
-  2. Create and migrate your database with `mix ecto.create && mix ecto.migrate`
-  3. Start Phoenix endpoint with `mix phoenix.server`
+- Elixir 1.2.6
+- PostgreSQL
+
+#### Setup
+
+Add an user to your PostgreSQL database (matches the config in `dev.exs` and `test.exs`). `SUPERUSER` is needed because some migrations will require to be able to create extensions (`0160418232000_setup_content_search.exs`).
+
+```
+psql -d postgres
+psql> CREATE USER idea_zone WITH SUPERUSER PASSWORD 'idea_zone';
+```
+
+#### Start
+
+```
+# Install dependencies
+mix deps.get
+
+# Create and migrate the database
+mix ecto;create && mix ecto.migrate
+
+# Start
+mix phoenix.server # or bin/server
+```
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 

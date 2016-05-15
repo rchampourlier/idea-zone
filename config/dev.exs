@@ -35,8 +35,8 @@ config :phoenix, :stacktrace_depth, 20
 # Configure your database
 config :idea_zone, IdeaZone.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "rchampourlier",
-  password: "",
+  username: "idea_zone",
+  password: "idea_zone",
   database: "idea_zone_dev",
   hostname: "localhost",
   pool_size: 10

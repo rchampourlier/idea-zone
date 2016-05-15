@@ -12,8 +12,12 @@ config :logger, level: :warn
 # Configure your database
 config :idea_zone, IdeaZone.Repo,
   adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
+  username: "idea_zone",
+  password: "idea_zone",
   database: "idea_zone_test",
   hostname: "localhost",
   pool: Ecto.Adapters.SQL.Sandbox
+
+# Custom config
+config :idea_zone,
+  admin_password: "password"
