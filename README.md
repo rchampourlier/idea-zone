@@ -2,16 +2,14 @@
 
 IdeaZone is a simple webapp that enables a community to share and vote on ideas, questions, issues... The specific feature of this app is that submitting contents and votes is anonymous (it however only provides a basic level of anonymity and doesn't prevent malicious users from submitting multiple votes).
 
-## How to run
+## Getting started
 
-### In development
+### Prerequisites
 
-#### Prerequisites
+Dependencies:
 
 - Elixir 1.2.6
-- PostgreSQL
-
-#### Setup
+- PostgreSQL 9.5
 
 Add an user to your PostgreSQL database (matches the config in `dev.exs` and `test.exs`). `SUPERUSER` is needed because some migrations will require to be able to create extensions (`0160418232000_setup_content_search.exs`).
 
@@ -20,7 +18,7 @@ psql -d postgres
 psql> CREATE USER idea_zone WITH SUPERUSER PASSWORD 'idea_zone';
 ```
 
-#### Start
+### Start
 
 ```
 # Install dependencies
@@ -35,11 +33,19 @@ mix phoenix.server # or bin/server
 
 Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
-### In production
+## Run tests
+
+```
+bin/test
+```
+
+_NB: tests have been written using CasperJS to be as high-level as possible._
+
+## Deployment
 
 Follow the [Phoenix deployment guides](http://www.phoenixframework.org/docs/deployment) or the following ones.
 
-#### Heroku
+### Heroku
 
 You must set the `IDEA_ZONE_ADMIN_PASSWORD` environment variable (defaults to "password" in development environment).
 
