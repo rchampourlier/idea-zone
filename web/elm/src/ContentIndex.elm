@@ -3,7 +3,7 @@ module ContentIndex exposing (..)
 import Debug
 import Html exposing (..)
 import Html.App as Html
-import Html.Attributes exposing (attribute, class, classList, disabled, for, href, id, size, style, type')
+import Html.Attributes exposing (attribute, class, classList, disabled, for, href, id, name, size, style, type')
 import Html.Events exposing (..)
 import Http
 import Json.Decode exposing ((:=))
@@ -211,14 +211,14 @@ viewFilter model =
 
 viewFilterText : Model -> Html Msg
 viewFilterText model =
-  form [ class "form-inline" ]
+  form [ class "form-inline", id "filter-text" ]
     [ div [ class "form-group" ]
-      [ label [ for "filterInput" ] [ text "Search for something" ]
+      [ label [ for "filter-input" ] [ text "Search for something" ]
       , input
         [ onInput UpdateFilter
         , type' "text"
         , class "form-control"
-        , id "filterInput"
+        , name "filter-text"
         , size 50
         ] []
       ]

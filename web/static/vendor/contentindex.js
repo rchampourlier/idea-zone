@@ -8526,7 +8526,8 @@ var _rchampourlier$idea_zone$ContentIndex$viewFilterText = function (model) {
 		_elm_lang$html$Html$form,
 		_elm_lang$core$Native_List.fromArray(
 			[
-				_elm_lang$html$Html_Attributes$class('form-inline')
+				_elm_lang$html$Html_Attributes$class('form-inline'),
+				_elm_lang$html$Html_Attributes$id('filter-text')
 			]),
 		_elm_lang$core$Native_List.fromArray(
 			[
@@ -8542,7 +8543,7 @@ var _rchampourlier$idea_zone$ContentIndex$viewFilterText = function (model) {
 						_elm_lang$html$Html$label,
 						_elm_lang$core$Native_List.fromArray(
 							[
-								_elm_lang$html$Html_Attributes$for('filterInput')
+								_elm_lang$html$Html_Attributes$for('filter-input')
 							]),
 						_elm_lang$core$Native_List.fromArray(
 							[
@@ -8555,7 +8556,7 @@ var _rchampourlier$idea_zone$ContentIndex$viewFilterText = function (model) {
 								_elm_lang$html$Html_Events$onInput(_rchampourlier$idea_zone$ContentIndex$UpdateFilter),
 								_elm_lang$html$Html_Attributes$type$('text'),
 								_elm_lang$html$Html_Attributes$class('form-control'),
-								_elm_lang$html$Html_Attributes$id('filterInput'),
+								_elm_lang$html$Html_Attributes$name('filter-text'),
 								_elm_lang$html$Html_Attributes$size(50)
 							]),
 						_elm_lang$core$Native_List.fromArray(
