@@ -12,5 +12,9 @@
     "jquery": "^2.2.3",
     "sass-brunch": "^2.6.3",
     "uglify-js-brunch": "^2.0.1"
+  },
+  "devDependencies": {
+    "casperjs": "^1.1.1",
+    "phantomjs": "^2.1.7"
   }
 }

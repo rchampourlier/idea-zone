@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# Setup database
+MIX_ENV=test mix ecto.rollback -n 5
+MIX_ENV=test mix ecto.migrate
+MIX_ENV=test mix run priv/repo/seeds.exs
+echo "Database ready"
+
+# Build static assets
+brunch build --production
+echo "Assets compiled"
+
+# Run test server
+MIX_ENV=test mix phoenix.server &
+#MIX_ENV=test elixir --detached -S mix phoenix.server
+PID=$!
+echo "(Waiting 2s for the server to start)"
+sleep 2
+echo "Server started (pid=$PID)"
+
+# Run tests
+find ./test/acceptance -name "*.js"|xargs casperjs test
+
+# Stop server
+kill $PID
+echo "Server stopped"
+
+echo "Tests completed"
